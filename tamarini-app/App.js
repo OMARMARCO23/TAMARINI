@@ -17,7 +17,7 @@ import * as ImagePicker from "expo-image-picker";
 
 // Replace this with your real Vercel backend URL AFTER deployment
 // For local testing with a tunnel, you can temporarily use a local URL.
-const API_URL = "https://YOUR-VERCEL-PROJECT.vercel.app/api/tamarini";
+const API_URL = "https://https://tamarini.vercel.app/api/tamarini";
 
 export default function App() {
   const [messages, setMessages] = useState([
