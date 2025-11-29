@@ -1,2 +1,16 @@
-// inside "dependencies"
-"@google/generative-ai": "^0.21.0"
+{
+  "name": "tamarini-backend",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start"
+  },
+  "dependencies": {
+    "@google/generative-ai": "^0.21.0",
+    "next": "14.2.3",        // or similar version
+    "react": "18.2.0",
+    "react-dom": "18.2.0"
+  }
+}
