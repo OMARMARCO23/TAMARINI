@@ -33,8 +33,6 @@ function SettingsProvider({ children }) {
   const [language, setLanguage] = useState("fr"); // "fr" | "ar"
   const [theme, setTheme] = useState("light"); // "light" | "dark"
 
-  // In a real app you can load/save from AsyncStorage
-
   const value = {
     language,
     theme,
@@ -139,7 +137,7 @@ const STRINGS = {
   },
 };
 
-/* ---------- Main App ---------- */
+/* ---------- Main Chat Screen ---------- */
 
 function ChatScreen() {
   const { language, theme } = useSettings();
@@ -157,7 +155,7 @@ function ChatScreen() {
   const scrollViewRef = useRef(null);
 
   useEffect(() => {
-    // If language changes, replace the first assistant message text
+    // If language changes, update the first assistant message
     setMessages((prev) => {
       const copy = [...prev];
       if (copy.length > 0 && copy[0].sender === "assistant") {
@@ -327,13 +325,12 @@ function ChatScreen() {
         >
           <View>
             <Text style={styles.appTitle}>{STR.appTitle}</Text>
-            <Text style={[styles.subtitle, { color: colors.subtle }]}>
+            <Text style={[styles.subtitle, { color: "#e5e7eb" }]}>
               {STR.subtitle}
             </Text>
           </View>
 
           <View style={styles.headerIcons}>
-            {/* Settings icon */}
             <TouchableOpacity
               onPress={() => setSettingsOpen(true)}
               style={styles.headerIconButton}
@@ -396,8 +393,14 @@ function ChatScreen() {
                     style={[
                       styles.messageText,
                       msg.sender === "user"
-                        ? { color: colors.userText, textAlign: isRTL ? "right" : "left" }
-                        : { color: colors.text, textAlign: isRTL ? "right" : "left" },
+                        ? {
+                            color: colors.userText,
+                            textAlign: isRTL ? "right" : "left",
+                          }
+                        : {
+                            color: colors.text,
+                            textAlign: isRTL ? "right" : "left",
+                          },
                     ]}
                   >
                     {msg.text}
@@ -473,7 +476,7 @@ function ChatScreen() {
                 multiline
               />
 
-              {/* Send button */}
+              {/* Send */}
               <TouchableOpacity
                 onPress={handleSend}
                 style={[styles.sendButton, { backgroundColor: colors.userBubble }]}
@@ -511,7 +514,7 @@ function SettingsSheet({ onClose }) {
           },
         ]}
       >
-        <View style={styles.sheetHeader}>
+        <View className="sheetHeader" style={styles.sheetHeader}>
           <Text style={[styles.sheetTitle, { color: colors.text }]}>
             {STR.settings}
           </Text>
@@ -620,7 +623,6 @@ const styles = StyleSheet.create({
   subtitle: {
     fontSize: 12,
     marginTop: 2,
-    color: "#e5e7eb",
   },
   headerIcons: {
     flexDirection: "row",
