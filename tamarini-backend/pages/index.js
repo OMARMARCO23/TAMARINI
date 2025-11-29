@@ -1,6 +1,6 @@
 // tamarini-backend/pages/index.js
 
-import { useState, useRef } from "react";
+import React, { useState, useRef } from "react";
 
 export default function Home() {
   const [messages, setMessages] = useState([
@@ -60,7 +60,7 @@ export default function Home() {
         };
       }
 
-      // Call same domain API route
+      // Call the API route on the same domain
       const res = await fetch("/api/tamarini", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -217,7 +217,7 @@ export default function Home() {
           <div
             style={{
               backgroundColor: "#fff",
-              borderTop: "1px solid "#ddd",
+              borderTop: "1px solid #ddd",
               padding: "0.5rem 1rem",
             }}
           >
