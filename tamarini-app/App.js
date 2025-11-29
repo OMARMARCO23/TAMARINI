@@ -1,114 +1,49 @@
-// tamarini-app/App.js
+// tamarini-backend/app/page.js
+"use client";
 
-import React, { useState, useRef } from "react";
-import {
-  SafeAreaView,
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  ScrollView,
-  Image,
-  ActivityIndicator,
-  StyleSheet,
-  Alert,
-} from "react-native";
-import * as ImagePicker from "expo-image-picker";
+import { useState, useRef } from "react";
 
-// IMPORTANT: this must be EXACTLY your API endpoint (no spaces)
-const API_URL = "https://tamarini.vercel.app/api/tamarini";
-
-export default function App() {
+export default function Home() {
   const [messages, setMessages] = useState([
     {
       id: "1",
       sender: "assistant",
       text:
         "Hi, I am TAMARINI.\n" +
-        "Take a clear photo or upload your math exercise, and tell me what you understand so far. " +
+        "Upload a clear photo of your math exercise, or type it here, and tell me what you understand so far. " +
         "I will guide you step by step, and at the end we will check your final answer together.",
     },
   ]);
   const [inputText, setInputText] = useState("");
-  const [attachedImage, setAttachedImage] = useState(null); // { uri, base64, mimeType }
+  const [pendingImage, setPendingImage] = useState(null); // { previewUrl, dataUrl, mimeType }
   const [loading, setLoading] = useState(false);
 
-  const scrollViewRef = useRef(null);
+  const bottomRef = useRef(null);
 
   const scrollToBottom = () => {
-    scrollViewRef.current?.scrollToEnd({ animated: true });
+    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
-  const detectMimeTypeFromUri = (uri) => {
-    const lower = uri.toLowerCase();
-    if (lower.endsWith(".png")) return "image/png";
-    if (lower.endsWith(".jpg") || lower.endsWith(".jpeg")) return "image/jpeg";
-    if (lower.endsWith(".heic")) return "image/heic";
-    return "image/jpeg";
-  };
+  const handleFileChange = (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
 
-  const requestPermissions = async () => {
-    const cameraPerm = await ImagePicker.requestCameraPermissionsAsync();
-    const libPerm = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (cameraPerm.status !== "granted" || libPerm.status !== "granted") {
-      Alert.alert(
-        "Permission required",
-        "Please allow camera and gallery access to send exercises."
-      );
-      return false;
-    }
-    return true;
-  };
+    const previewUrl = URL.createObjectURL(file);
+    const reader = new FileReader();
 
-  const openCamera = async () => {
-    const ok = await requestPermissions();
-    if (!ok) return;
-
-    const result = await ImagePicker.launchCameraAsync({
-      allowsEditing: true,
-      base64: true,
-      quality: 0.7,
-    });
-
-    if (!result.canceled && result.assets && result.assets.length > 0) {
-      const asset = result.assets[0];
-      setAttachedImage({
-        uri: asset.uri,
-        base64: asset.base64,
-        mimeType: detectMimeTypeFromUri(asset.uri),
+    reader.onloadend = () => {
+      const dataUrl = reader.result; // "data:image/jpeg;base64,...."
+      setPendingImage({
+        previewUrl,
+        dataUrl,
+        mimeType: file.type || "image/jpeg",
       });
-    }
+    };
+
+    reader.readAsDataURL(file);
   };
 
-  const openGallery = async () => {
-    const ok = await requestPermissions();
-    if (!ok) return;
-
-    const result = await ImagePicker.launchImageLibraryAsync({
-      allowsEditing: true,
-      base64: true,
-      quality: 0.7,
-    });
-
-    if (!result.canceled && result.assets && result.assets.length > 0) {
-      const asset = result.assets[0];
-      setAttachedImage({
-        uri: asset.uri,
-        base64: asset.base64,
-        mimeType: detectMimeTypeFromUri(asset.uri),
-      });
-    }
-  };
-
-  const onPressAddImage = () => {
-    Alert.alert("Add exercise image", "Choose source", [
-      { text: "Camera", onPress: openCamera },
-      { text: "Gallery", onPress: openGallery },
-      { text: "Cancel", style: "cancel" },
-    ]);
-  };
-
-  const sendMessageToBackend = async (newMessages, imageForThisMessage) => {
+  const sendMessageToBackend = async (newMessages, imageData) => {
     try {
       setLoading(true);
 
@@ -117,42 +52,32 @@ export default function App() {
         text: m.text,
       }));
 
-      const body = {
-        messages: apiMessages,
-      };
+      const body = { messages: apiMessages };
 
-      if (imageForThisMessage && imageForThisMessage.base64) {
+      if (imageData) {
         body.image = {
-          base64: imageForThisMessage.base64,
-          mimeType: imageForThisMessage.mimeType,
+          base64: imageData.dataUrl, // full data URL, backend strips prefix
+          mimeType: imageData.mimeType,
         };
       }
 
-      console.log("Sending to API_URL:", API_URL);
-      console.log(
-        "Request body (truncated):",
-        JSON.stringify(body).slice(0, 200) + "..."
-      );
-
-      const res = await fetch(API_URL, {
+      // Because this code runs in the browser on the same domain,
+      // we can call the API route with a relative URL:
+      const res = await fetch("/api/tamarini", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
       });
 
       const contentType = res.headers.get("content-type") || "";
-
       let data;
       if (contentType.includes("application/json")) {
         data = await res.json();
       } else {
         const text = await res.text();
-        console.log("Non-JSON response from server:", text);
+        console.error("Non-JSON response from server:", text);
         throw new Error("Server did not return JSON");
       }
-
-      console.log("Response status:", res.status);
-      console.log("Response data:", data);
 
       if (!res.ok || !data.reply) {
         throw new Error(data.error || "No reply from server");
@@ -182,13 +107,13 @@ export default function App() {
   };
 
   const handleSend = () => {
-    if (!inputText.trim() && !attachedImage) {
-      return;
+    if (!inputText.trim() && !pendingImage) {
+      return; // nothing to send
     }
 
     const textToSend = inputText.trim()
       ? inputText.trim()
-      : attachedImage
+      : pendingImage
       ? "Here is my exercise image."
       : "";
 
@@ -196,170 +121,202 @@ export default function App() {
       id: Date.now().toString(),
       sender: "user",
       text: textToSend,
-      imageUri: attachedImage ? attachedImage.uri : null,
+      imageUrl: pendingImage ? pendingImage.previewUrl : null,
     };
 
     const newMessages = [...messages, userMessage];
     setMessages(newMessages);
     setInputText("");
-    const imageForThisMessage = attachedImage;
-    setAttachedImage(null);
+    const imageForThisMessage = pendingImage;
+    setPendingImage(null);
     setTimeout(scrollToBottom, 50);
 
+    // Call backend with this new state
     sendMessageToBackend(newMessages, imageForThisMessage);
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>TAMARINI</Text>
-        <Text style={styles.headerSubtitle}>
-          Math tutor that guides you, not just gives answers
-        </Text>
-      </View>
-
-      <ScrollView
-        style={styles.messagesContainer}
-        ref={scrollViewRef}
-        onContentSizeChange={scrollToBottom}
+    <div
+      style={{
+        minHeight: "100vh",
+        display: "flex",
+        flexDirection: "column",
+        backgroundColor: "#f2f2f7",
+        fontFamily: "system-ui, -apple-system, BlinkMacSystemFont, sans-serif",
+      }}
+    >
+      <header
+        style={{
+          padding: "0.75rem 1rem",
+          backgroundColor: "#ffffff",
+          borderBottom: "1px solid #ddd",
+        }}
       >
-        {messages.map((msg) => (
-          <View
-            key={msg.id}
-            style={[
-              styles.messageBubble,
-              msg.sender === "user" ? styles.userBubble : styles.botBubble,
-            ]}
+        <h1 style={{ margin: 0, fontSize: "1.5rem" }}>TAMARINI</h1>
+        <p style={{ margin: 0, fontSize: "0.8rem", color: "#666" }}>
+          Math tutor that guides you, not just gives answers
+        </p>
+      </header>
+
+      <main
+        style={{
+          flex: 1,
+          display: "flex",
+          flexDirection: "column",
+          padding: "0.5rem",
+          maxWidth: "800px",
+          margin: "0 auto",
+          width: "100%",
+        }}
+      >
+        <div
+          style={{
+            flex: 1,
+            overflowY: "auto",
+            padding: "0.5rem",
+          }}
+        >
+          {messages.map((msg) => (
+            <div
+              key={msg.id}
+              style={{
+                display: "flex",
+                justifyContent:
+                  msg.sender === "user" ? "flex-end" : "flex-start",
+                marginBottom: "0.5rem",
+              }}
+            >
+              <div
+                style={{
+                  maxWidth: "80%",
+                  borderRadius: "12px",
+                  padding: "0.5rem 0.75rem",
+                  backgroundColor:
+                    msg.sender === "user" ? "#007AFF" : "#e5e5ea",
+                  color: msg.sender === "user" ? "#fff" : "#111",
+                  whiteSpace: "pre-wrap",
+                }}
+              >
+                {msg.imageUrl && (
+                  <div style={{ marginBottom: "0.25rem" }}>
+                    <img
+                      src={msg.imageUrl}
+                      alt="exercise"
+                      style={{
+                        maxWidth: "100%",
+                        borderRadius: "8px",
+                      }}
+                    />
+                  </div>
+                )}
+                {msg.text}
+              </div>
+            </div>
+          ))}
+          <div ref={bottomRef} />
+        </div>
+
+        {pendingImage && (
+          <div
+            style={{
+              backgroundColor: "#fff",
+              borderTop: "1px solid #ddd",
+              padding: "0.5rem 1rem",
+            }}
           >
-            {msg.imageUri && (
-              <Image source={{ uri: msg.imageUri }} style={styles.messageImage} />
-            )}
-            <Text style={msg.sender === "user" ? styles.userText : styles.botText}>
-              {msg.text}
-            </Text>
-          </View>
-        ))}
-      </ScrollView>
+            <p style={{ margin: "0 0 0.25rem 0", fontSize: "0.8rem" }}>
+              Attached image:
+            </p>
+            <img
+              src={pendingImage.previewUrl}
+              alt="preview"
+              style={{
+                maxWidth: "150px",
+                borderRadius: "8px",
+                display: "block",
+              }}
+            />
+          </div>
+        )}
 
-      {attachedImage && (
-        <View style={styles.previewContainer}>
-          <Text style={styles.previewLabel}>Attached image:</Text>
-          <Image source={{ uri: attachedImage.uri }} style={styles.previewImage} />
-        </View>
-      )}
+        {loading && (
+          <div
+            style={{
+              padding: "0.5rem 1rem",
+              fontSize: "0.9rem",
+              color: "#555",
+            }}
+          >
+            TAMARINI is thinking...
+          </div>
+        )}
 
-      {loading && (
-        <View style={styles.loadingRow}>
-          <ActivityIndicator size="small" color="#555" />
-          <Text style={styles.loadingText}>TAMARINI is thinking...</Text>
-        </View>
-      )}
+        <div
+          style={{
+            display: "flex",
+            gap: "0.5rem",
+            padding: "0.5rem",
+            backgroundColor: "#ffffff",
+            borderTop: "1px solid #ddd",
+          }}
+        >
+          <label
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              justifyContent: "center",
+              padding: "0.4rem 0.7rem",
+              borderRadius: "999px",
+              backgroundColor: "#eee",
+              fontSize: "0.8rem",
+              cursor: "pointer",
+              whiteSpace: "nowrap",
+            }}
+          >
+            Upload image
+            <input
+              type="file"
+              accept="image/*"
+              style={{ display: "none" }}
+              onChange={handleFileChange}
+            />
+          </label>
 
-      <View style={styles.inputRow}>
-        <TouchableOpacity onPress={onPressAddImage} style={styles.iconButton}>
-          <Text style={{ fontSize: 14, fontWeight: "bold" }}>CAM</Text>
-        </TouchableOpacity>
+          <textarea
+            style={{
+              flex: 1,
+              minHeight: "2.2rem",
+              maxHeight: "6rem",
+              padding: "0.4rem 0.6rem",
+              borderRadius: "999px",
+              border: "1px solid #ccc",
+              resize: "none",
+              fontFamily: "inherit",
+              fontSize: "0.9rem",
+            }}
+            placeholder="Type what you understand, your step, or your final answer..."
+            value={inputText}
+            onChange={(e) => setInputText(e.target.value)}
+          />
 
-        <TextInput
-          style={styles.textInput}
-          placeholder="Type what you understand, your step, or your final answer..."
-          value={inputText}
-          onChangeText={setInputText}
-          multiline
-        />
-
-        <TouchableOpacity onPress={handleSend} style={styles.sendButton}>
-          <Text style={{ color: "white", fontWeight: "bold" }}>Send</Text>
-        </TouchableOpacity>
-      </View>
-    </SafeAreaView>
+          <button
+            onClick={handleSend}
+            style={{
+              padding: "0.4rem 0.9rem",
+              borderRadius: "999px",
+              border: "none",
+              backgroundColor: "#007AFF",
+              color: "#fff",
+              fontWeight: "bold",
+              cursor: "pointer",
+              fontSize: "0.9rem",
+            }}
+            disabled={loading}
+          >
+            Send
+          </button>
+        </div>
+      </main>
+    </div>
   );
 }
-
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#f2f2f7" },
-  header: {
-    paddingTop: 8,
-    paddingHorizontal: 16,
-    paddingBottom: 8,
-    backgroundColor: "#ffffff",
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: "#ccc",
-  },
-  headerTitle: { fontSize: 24, fontWeight: "bold", color: "#333" },
-  headerSubtitle: { fontSize: 12, color: "#666", marginTop: 2 },
-  messagesContainer: { flex: 1, paddingHorizontal: 10, paddingTop: 8 },
-  messageBubble: {
-    maxWidth: "80%",
-    borderRadius: 12,
-    padding: 8,
-    marginVertical: 4,
-  },
-  userBubble: {
-    backgroundColor: "#007AFF",
-    alignSelf: "flex-end",
-  },
-  botBubble: {
-    backgroundColor: "#e5e5ea",
-    alignSelf: "flex-start",
-  },
-  userText: { color: "white" },
-  botText: { color: "#111" },
-  messageImage: {
-    width: 200,
-    height: 200,
-    borderRadius: 8,
-    marginBottom: 4,
-  },
-  previewContainer: {
-    backgroundColor: "#fff",
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: "#ccc",
-  },
-  previewLabel: { fontSize: 12, color: "#555", marginBottom: 4 },
-  previewImage: {
-    width: 120,
-    height: 120,
-    borderRadius: 8,
-    alignSelf: "flex-start",
-  },
-  loadingRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 16,
-    paddingBottom: 4,
-  },
-  loadingText: { marginLeft: 8, color: "#555" },
-  inputRow: {
-    flexDirection: "row",
-    alignItems: "flex-end",
-    paddingHorizontal: 8,
-    paddingVertical: 6,
-    backgroundColor: "#ffffff",
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: "#ccc",
-  },
-  iconButton: {
-    padding: 6,
-  },
-  textInput: {
-    flex: 1,
-    minHeight: 40,
-    maxHeight: 100,
-    marginHorizontal: 6,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    backgroundColor: "#f0f0f0",
-    borderRadius: 16,
-  },
-  sendButton: {
-    backgroundColor: "#007AFF",
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 16,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-});
