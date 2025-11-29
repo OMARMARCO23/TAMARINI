@@ -2,12 +2,19 @@
 
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
-const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY);
+const apiKey = process.env.GOOGLE_API_KEY;
+
+// Log once on cold start if key is missing (for debugging)
+if (!apiKey) {
+  console.error("GOOGLE_API_KEY is not set. Check Vercel Environment Variables.");
+}
+
+const genAI = new GoogleGenerativeAI(apiKey);
 
 export default async function handler(req, res) {
   if (req.method !== "POST") {
     res.setHeader("Allow", ["POST"]);
-    return res.status(405).end("Method Not Allowed");
+    return res.status(405).json({ error: "Method Not Allowed" });
   }
 
   try {
@@ -68,11 +75,10 @@ Tutor:
 
     const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
-    // Build parts for text + optional image
     const parts = [{ text: systemPrompt }];
 
     if (image && image.base64) {
-      // If base64 has a "data:image/..." prefix, strip it
+      // Strip "data:image/..;base64," prefix if present
       const cleanedBase64 = image.base64.replace(
         /^data:image\/[a-zA-Z+]+;base64,/,
         ""
@@ -92,6 +98,9 @@ Tutor:
     return res.status(200).json({ reply: text });
   } catch (err) {
     console.error("TAMARINI API error:", err);
-    return res.status(500).json({ error: "AI error" });
+    // Send the error message back so frontend can show something useful
+    return res
+      .status(500)
+      .json({ error: err?.message || "AI error (see server logs)" });
   }
 }
