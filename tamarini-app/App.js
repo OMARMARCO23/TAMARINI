@@ -109,62 +109,61 @@ export default function App() {
     ]);
   };
 
-  const sendMessageToBackend = async (newMessages, imageForThisMessage) => {
-    try {
-      setLoading(true);
+const sendMessageToBackend = async (newMessages, imageForThisMessage) => {
+  try {
+    setLoading(true);
 
-      // Prepare messages for API (we only send text + sender, not image URIs)
-      const apiMessages = newMessages.map((m) => ({
-        sender: m.sender,
-        text: m.text,
-      }));
+    const apiMessages = newMessages.map((m) => ({
+      sender: m.sender,
+      text: m.text,
+    }));
 
-      const body = {
-        messages: apiMessages,
+    const body = {
+      messages: apiMessages,
+    };
+
+    if (imageForThisMessage && imageForThisMessage.base64) {
+      body.image = {
+        base64: imageForThisMessage.base64,
+        mimeType: imageForThisMessage.mimeType,
       };
-
-      if (imageForThisMessage && imageForThisMessage.base64) {
-        body.image = {
-          base64: imageForThisMessage.base64,
-          mimeType: imageForThisMessage.mimeType,
-        };
-      }
-
-      const res = await fetch(API_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
-      });
-
-      const data = await res.json();
-
-      if (!res.ok || !data.reply) {
-        throw new Error(data.error || "No reply from server");
-      }
-
-      const botMessage = {
-        id: Date.now().toString() + "-bot",
-        sender: "assistant",
-        text: data.reply,
-      };
-
-      setMessages((prev) => [...prev, botMessage]);
-      setTimeout(scrollToBottom, 50);
-    } catch (err) {
-      console.error("Error talking to TAMARINI:", err);
-      const errorMessage = {
-        id: Date.now().toString() + "-err",
-        sender: "assistant",
-        text:
-          "Sorry, I had a problem thinking about this. Please try again in a moment.",
-      };
-      setMessages((prev) => [...prev, errorMessage]);
-      setTimeout(scrollToBottom, 50);
-    } finally {
-      setLoading(false);
     }
-  };
 
+    // IMPORTANT: use API_URL and method POST
+    const res = await fetch(API_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+
+    const data = await res.json();
+
+    if (!res.ok || !data.reply) {
+      throw new Error(data.error || "No reply from server");
+    }
+
+    const botMessage = {
+      id: Date.now().toString() + "-bot",
+      sender: "assistant",
+      text: data.reply,
+    };
+
+    setMessages((prev) => [...prev, botMessage]);
+    setTimeout(scrollToBottom, 50);
+  } catch (err) {
+    console.error("Error talking to TAMARINI:", err);
+    const errorMessage = {
+      id: Date.now().toString() + "-err",
+      sender: "assistant",
+      text:
+        "Sorry, I had a problem thinking about this. Please try again in a moment.",
+    };
+    setMessages((prev) => [...prev, errorMessage]);
+    setTimeout(scrollToBottom, 50);
+  } finally {
+    setLoading(false);
+  }
+};
   const handleSend = () => {
     if (!inputText.trim() && !attachedImage) {
       return; // nothing to send
