@@ -1,5 +1,3 @@
-// tamarini-backend/pages/api/tamarini.js
-
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY);
@@ -60,24 +58,16 @@ Behavior rules:
 - Keep replies reasonably short (about 5–12 lines).
 
 Now answer with only your next tutor message, without repeating the full conversation.
-
 Conversation so far:
 ${conversationText}
-Tutor:
-    `.trim();
+Tutor:`.trim();
 
     const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
-    // Build parts for text + optional image
     const parts = [{ text: systemPrompt }];
 
     if (image && image.base64) {
-      // If base64 has a "data:image/..." prefix, strip it
-      const cleanedBase64 = image.base64.replace(
-        /^data:image\/[a-zA-Z+]+;base64,/,
-        ""
-      );
-
+      const cleanedBase64 = image.base64.replace(/^data:image\/[a-zA-Z+]+;base64,/, "");
       parts.push({
         inlineData: {
           data: cleanedBase64,
