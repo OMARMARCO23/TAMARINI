@@ -4,7 +4,6 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 
 const apiKey = process.env.GOOGLE_API_KEY;
 
-// Log once on cold start if key is missing (for debugging)
 if (!apiKey) {
   console.error("GOOGLE_API_KEY is not set. Check Vercel Environment Variables.");
 }
@@ -18,15 +17,14 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { messages, image } = req.body || {};
-    // messages: [{ sender: "user" | "assistant", text: string }]
-    // image: { base64: string, mimeType: string } | undefined
+    const { messages, image, language } = req.body || {};
 
     if (!Array.isArray(messages) || messages.length === 0) {
       return res.status(400).json({ error: "Missing messages" });
     }
 
-    // Build a simple text transcript for Gemini
+    const lang = language === "ar" ? "ar" : "fr";
+
     let conversationText = "";
     for (const m of messages) {
       const role = m.sender === "assistant" ? "Tutor" : "Student";
@@ -35,6 +33,12 @@ export default async function handler(req, res) {
 
     const systemPrompt = `
 You are TAMARINI, a friendly math tutor for students aged 12–18.
+
+Tutoring language:
+- If lang = "fr": you MUST respond in clear, simple French.
+- If lang = "ar": you MUST respond in clear, simple Modern Standard Arabic.
+
+lang: ${lang}
 
 You will see the conversation between you and the student, and possibly an image with the exercise.
 
@@ -49,6 +53,8 @@ Your goals:
    - Explain the solution clearly and briefly.
 
 Behavior rules:
+- Always respond entirely in the tutoring language given by "lang".
+- If the exercise text is in another language, you may restate or translate it into the tutoring language first.
 - At the very start of the conversation:
   - Identify what the exercise is about (using the image if provided).
   - Ask the student to describe in their own words what the question is asking, and what they understand so far.
@@ -62,7 +68,6 @@ Behavior rules:
       * They write something like "My final answer is ..." or "I think the answer is ...", OR
       * They clearly say they give up and want the solution.
 - If the problem is NOT about school math for ages 12–18, politely say you currently only help with math.
-- Always use simple language suitable for 12–18 year olds.
 - Be positive and encouraging about mistakes.
 - Keep replies reasonably short (about 5–12 lines).
 
@@ -73,12 +78,13 @@ ${conversationText}
 Tutor:
     `.trim();
 
-    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+    const model = genAI.getGenerativeModel({
+      model: "gemini-2.5-flash", // your working model
+    });
 
     const parts = [{ text: systemPrompt }];
 
     if (image && image.base64) {
-      // Strip "data:image/..;base64," prefix if present
       const cleanedBase64 = image.base64.replace(
         /^data:image\/[a-zA-Z+]+;base64,/,
         ""
@@ -98,7 +104,6 @@ Tutor:
     return res.status(200).json({ reply: text });
   } catch (err) {
     console.error("TAMARINI API error:", err);
-    // Send the error message back so frontend can show something useful
     return res
       .status(500)
       .json({ error: err?.message || "AI error (see server logs)" });
