@@ -15,8 +15,7 @@ import {
 } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 
-// Replace this with your real Vercel backend URL AFTER deployment
-// For local testing with a tunnel, you can temporarily use a local URL.
+// IMPORTANT: this must be EXACTLY your API endpoint (no spaces)
 const API_URL = "https://tamarini.vercel.app/api/tamarini";
 
 export default function App() {
@@ -45,7 +44,7 @@ export default function App() {
     if (lower.endsWith(".png")) return "image/png";
     if (lower.endsWith(".jpg") || lower.endsWith(".jpeg")) return "image/jpeg";
     if (lower.endsWith(".heic")) return "image/heic";
-    return "image/jpeg"; // default
+    return "image/jpeg";
   };
 
   const requestPermissions = async () => {
@@ -109,64 +108,82 @@ export default function App() {
     ]);
   };
 
-const sendMessageToBackend = async (newMessages, imageForThisMessage) => {
-  try {
-    setLoading(true);
+  const sendMessageToBackend = async (newMessages, imageForThisMessage) => {
+    try {
+      setLoading(true);
 
-    const apiMessages = newMessages.map((m) => ({
-      sender: m.sender,
-      text: m.text,
-    }));
+      const apiMessages = newMessages.map((m) => ({
+        sender: m.sender,
+        text: m.text,
+      }));
 
-    const body = {
-      messages: apiMessages,
-    };
-
-    if (imageForThisMessage && imageForThisMessage.base64) {
-      body.image = {
-        base64: imageForThisMessage.base64,
-        mimeType: imageForThisMessage.mimeType,
+      const body = {
+        messages: apiMessages,
       };
+
+      if (imageForThisMessage && imageForThisMessage.base64) {
+        body.image = {
+          base64: imageForThisMessage.base64,
+          mimeType: imageForThisMessage.mimeType,
+        };
+      }
+
+      console.log("Sending to API_URL:", API_URL);
+      console.log(
+        "Request body (truncated):",
+        JSON.stringify(body).slice(0, 200) + "..."
+      );
+
+      const res = await fetch(API_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+
+      const contentType = res.headers.get("content-type") || "";
+
+      let data;
+      if (contentType.includes("application/json")) {
+        data = await res.json();
+      } else {
+        const text = await res.text();
+        console.log("Non-JSON response from server:", text);
+        throw new Error("Server did not return JSON");
+      }
+
+      console.log("Response status:", res.status);
+      console.log("Response data:", data);
+
+      if (!res.ok || !data.reply) {
+        throw new Error(data.error || "No reply from server");
+      }
+
+      const botMessage = {
+        id: Date.now().toString() + "-bot",
+        sender: "assistant",
+        text: data.reply,
+      };
+
+      setMessages((prev) => [...prev, botMessage]);
+      setTimeout(scrollToBottom, 50);
+    } catch (err) {
+      console.error("Error talking to TAMARINI:", err);
+      const errorMessage = {
+        id: Date.now().toString() + "-err",
+        sender: "assistant",
+        text:
+          "Sorry, I had a problem thinking about this. Please try again in a moment.",
+      };
+      setMessages((prev) => [...prev, errorMessage]);
+      setTimeout(scrollToBottom, 50);
+    } finally {
+      setLoading(false);
     }
+  };
 
-    // IMPORTANT: use API_URL and method POST
-    const res = await fetch(API_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body),
-    });
-
-    const data = await res.json();
-
-    if (!res.ok || !data.reply) {
-      throw new Error(data.error || "No reply from server");
-    }
-
-    const botMessage = {
-      id: Date.now().toString() + "-bot",
-      sender: "assistant",
-      text: data.reply,
-    };
-
-    setMessages((prev) => [...prev, botMessage]);
-    setTimeout(scrollToBottom, 50);
-  } catch (err) {
-    console.error("Error talking to TAMARINI:", err);
-    const errorMessage = {
-      id: Date.now().toString() + "-err",
-      sender: "assistant",
-      text:
-        "Sorry, I had a problem thinking about this. Please try again in a moment.",
-    };
-    setMessages((prev) => [...prev, errorMessage]);
-    setTimeout(scrollToBottom, 50);
-  } finally {
-    setLoading(false);
-  }
-};
   const handleSend = () => {
     if (!inputText.trim() && !attachedImage) {
-      return; // nothing to send
+      return;
     }
 
     const textToSend = inputText.trim()
@@ -189,7 +206,6 @@ const sendMessageToBackend = async (newMessages, imageForThisMessage) => {
     setAttachedImage(null);
     setTimeout(scrollToBottom, 50);
 
-    // Call backend with this new state
     sendMessageToBackend(newMessages, imageForThisMessage);
   };
 
