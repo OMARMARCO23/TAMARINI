@@ -1,16 +1,53 @@
 // tamarini-backend/pages/index.js
 
 import React, { useState, useRef } from "react";
+import { useSettings } from "../context/SettingsContext";
 
 export default function Home() {
+  const { language } = useSettings();
+
+  const TEXT = {
+    fr: {
+      title: "TAMARINI",
+      subtitle: "Tuteur de maths qui t’aide à comprendre, pas juste à copier.",
+      initial:
+        "Salut, je suis TAMARINI.\n" +
+        "Envoie une photo claire de ton exercice de maths, ou écris-le ici, puis explique-moi ce que tu as compris. " +
+        "Je vais te guider étape par étape, et à la fin on vérifiera ta réponse ensemble.",
+      upload: "Ajouter une image",
+      placeholder:
+        "Écris ce que tu comprends, ta démarche, ou ta réponse finale…",
+      send: "Envoyer",
+      loading: "TAMARINI réfléchit…",
+      attached: "Image jointe :",
+      errorGeneric:
+        "Désolé, j’ai eu un problème pour réfléchir à ça. Réessaie dans un instant.",
+    },
+    ar: {
+      title: "تَمَارِينِي",
+      subtitle: "معلّم رياضيات يساعدك على الفهم، ليس فقط على إعطاء الإجابة.",
+      initial:
+        "مرحباً، أنا تَمَارِينِي.\n" +
+        "التقط صورة واضحة لتمرين الرياضيات، أو اكتب السؤال هنا، ثم أخبرني ماذا فهمت حتى الآن. " +
+        "سأرشدك خطوة بخطوة، وفي النهاية نتحقق من إجابتك معاً.",
+      upload: "رفع صورة",
+      placeholder:
+        "اكتب ما تفهمه من التمرين، أو خطواتك، أو الجواب النهائي…",
+      send: "إرسال",
+      loading: "تَمَارِينِي يفكّر…",
+      attached: "صورة مرفقة:",
+      errorGeneric:
+        "عذراً، حدث خطأ أثناء المعالجة. حاول مرة أخرى بعد قليل.",
+    },
+  };
+
+  const t = TEXT[language] || TEXT.fr;
+
   const [messages, setMessages] = useState([
     {
       id: "1",
       sender: "assistant",
-      text:
-        "Hi, I am TAMARINI.\n" +
-        "Upload a clear photo of your math exercise, or type it here, and tell me what you understand so far. " +
-        "I will guide you step by step, and at the end we will check your final answer together.",
+      text: t.initial,
     },
   ]);
   const [inputText, setInputText] = useState("");
@@ -31,7 +68,7 @@ export default function Home() {
     const reader = new FileReader();
 
     reader.onloadend = () => {
-      const dataUrl = reader.result; // "data:image/jpeg;base64,...."
+      const dataUrl = reader.result; // "data:image/jpeg;base64,..."
       setPendingImage({
         previewUrl,
         dataUrl,
@@ -51,7 +88,7 @@ export default function Home() {
         text: m.text,
       }));
 
-      const body = { messages: apiMessages };
+      const body = { messages: apiMessages, language };
 
       if (imageData) {
         body.image = {
@@ -60,7 +97,6 @@ export default function Home() {
         };
       }
 
-      // Call the API route on the same domain
       const res = await fetch("/api/tamarini", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -94,8 +130,7 @@ export default function Home() {
       const errorMessage = {
         id: Date.now().toString() + "-err",
         sender: "assistant",
-        text:
-          "Sorry, I had a problem thinking about this. Please try again in a moment.",
+        text: t.errorGeneric,
       };
       setMessages((prev) => [...prev, errorMessage]);
       setTimeout(scrollToBottom, 50);
@@ -106,13 +141,15 @@ export default function Home() {
 
   const handleSend = () => {
     if (!inputText.trim() && !pendingImage) {
-      return; // nothing to send
+      return;
     }
 
     const textToSend = inputText.trim()
       ? inputText.trim()
       : pendingImage
-      ? "Here is my exercise image."
+      ? language === "ar"
+        ? "هذه صورة التمرين."
+        : "Voici l’image de mon exercice."
       : "";
 
     const userMessage = {
@@ -133,78 +170,34 @@ export default function Home() {
   };
 
   return (
-    <div
-      style={{
-        minHeight: "100vh",
-        display: "flex",
-        flexDirection: "column",
-        backgroundColor: "#f2f2f7",
-        fontFamily: "system-ui, -apple-system, BlinkMacSystemFont, sans-serif",
-      }}
-    >
-      <header
-        style={{
-          padding: "0.75rem 1rem",
-          backgroundColor: "#ffffff",
-          borderBottom: "1px solid #ddd",
-        }}
-      >
-        <h1 style={{ margin: 0, fontSize: "1.5rem" }}>TAMARINI</h1>
-        <p style={{ margin: 0, fontSize: "0.8rem", color: "#666" }}>
-          Math tutor that guides you, not just gives answers
-        </p>
-      </header>
+    <div className="chat-card">
+      <div className="chat-header">
+        <h2 className="chat-title">{t.title}</h2>
+        <p className="chat-subtitle">{t.subtitle}</p>
+      </div>
 
-      <main
-        style={{
-          flex: 1,
-          display: "flex",
-          flexDirection: "column",
-          padding: "0.5rem",
-          maxWidth: "800px",
-          margin: "0 auto",
-          width: "100%",
-        }}
-      >
-        <div
-          style={{
-            flex: 1,
-            overflowY: "auto",
-            padding: "0.5rem",
-          }}
-        >
+      <div className="chat-body">
+        <div className="messages-pane">
           {messages.map((msg) => (
             <div
               key={msg.id}
-              style={{
-                display: "flex",
-                justifyContent:
-                  msg.sender === "user" ? "flex-end" : "flex-start",
-                marginBottom: "0.5rem",
-              }}
+              className={
+                "message-row " +
+                (msg.sender === "user" ? "user" : "assistant")
+              }
             >
               <div
-                style={{
-                  maxWidth: "80%",
-                  borderRadius: "12px",
-                  padding: "0.5rem 0.75rem",
-                  backgroundColor:
-                    msg.sender === "user" ? "#007AFF" : "#e5e5ea",
-                  color: msg.sender === "user" ? "#fff" : "#111",
-                  whiteSpace: "pre-wrap",
-                }}
+                className={
+                  "message-bubble " +
+                  (msg.sender === "user" ? "user" : "assistant")
+                }
               >
                 {msg.imageUrl && (
-                  <div style={{ marginBottom: "0.25rem" }}>
-                    <img
-                      src={msg.imageUrl}
-                      alt="exercise"
-                      style={{
-                        maxWidth: "100%",
-                        borderRadius: "8px",
-                      }}
-                    />
-                  </div>
+                  <img
+                    src={msg.imageUrl}
+                    alt="exercise"
+                    className="message-image"
+                  />
                 )}
                 {msg.text}
               </div>
@@ -214,106 +207,47 @@ export default function Home() {
         </div>
 
         {pendingImage && (
-          <div
-            style={{
-              backgroundColor: "#fff",
-              borderTop: "1px solid #ddd",
-              padding: "0.5rem 1rem",
-            }}
-          >
-            <p style={{ margin: "0 0 0.25rem 0", fontSize: "0.8rem" }}>
-              Attached image:
-            </p>
+          <div className="preview-bar">
+            <span className="preview-label">{t.attached}</span>
             <img
               src={pendingImage.previewUrl}
               alt="preview"
-              style={{
-                maxWidth: "150px",
-                borderRadius: "8px",
-                display: "block",
-              }}
+              className="preview-thumb"
             />
           </div>
         )}
 
-        {loading && (
-          <div
-            style={{
-              padding: "0.5rem 1rem",
-              fontSize: "0.9rem",
-              color: "#555",
-            }}
-          >
-            TAMARINI is thinking...
-          </div>
-        )}
+        {loading && <div className="loading-bar">{t.loading}</div>}
 
-        <div
-          style={{
-            display: "flex",
-            gap: "0.5rem",
-            padding: "0.5rem",
-            backgroundColor: "#ffffff",
-            borderTop: "1px solid #ddd",
-          }}
-        >
-          <label
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              justifyContent: "center",
-              padding: "0.4rem 0.7rem",
-              borderRadius: "999px",
-              backgroundColor: "#eee",
-              fontSize: "0.8rem",
-              cursor: "pointer",
-              whiteSpace: "nowrap",
-            }}
-          >
-            Upload image
-            <input
-              type="file"
-              accept="image/*"
-              style={{ display: "none" }}
-              onChange={handleFileChange}
+        <div className="input-area">
+          <div className="input-row">
+            <label className="upload-label">
+              {t.upload}
+              <input
+                type="file"
+                accept="image/*"
+                style={{ display: "none" }}
+                onChange={handleFileChange}
+              />
+            </label>
+
+            <textarea
+              className="input-textarea"
+              placeholder={t.placeholder}
+              value={inputText}
+              onChange={(e) => setInputText(e.target.value)}
             />
-          </label>
 
-          <textarea
-            style={{
-              flex: 1,
-              minHeight: "2.2rem",
-              maxHeight: "6rem",
-              padding: "0.4rem 0.6rem",
-              borderRadius: "999px",
-              border: "1px solid #ccc",
-              resize: "none",
-              fontFamily: "inherit",
-              fontSize: "0.9rem",
-            }}
-            placeholder="Type what you understand, your step, or your final answer..."
-            value={inputText}
-            onChange={(e) => setInputText(e.target.value)}
-          />
-
-          <button
-            onClick={handleSend}
-            style={{
-              padding: "0.4rem 0.9rem",
-              borderRadius: "999px",
-              border: "none",
-              backgroundColor: "#007AFF",
-              color: "#fff",
-              fontWeight: "bold",
-              cursor: "pointer",
-              fontSize: "0.9rem",
-            }}
-            disabled={loading}
-          >
-            Send
-          </button>
+            <button
+              onClick={handleSend}
+              className="send-button"
+              disabled={loading}
+            >
+              {t.send}
+            </button>
+          </div>
         </div>
-      </main>
+      </div>
     </div>
   );
 }
