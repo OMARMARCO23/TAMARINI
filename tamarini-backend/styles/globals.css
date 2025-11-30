@@ -20,20 +20,20 @@ body {
 
 /* ---------- THEME TOKENS ---------- */
 
-/* LIGHT MODE: neutral, not too bright */
+/* LIGHT MODE: neutral */
 :root {
-  --bg: #e5e7eb;              /* page background */
-  --shell-bg: #f3f4f6;        /* shell background */
-  --surface: #ffffff;         /* main card */
-  --surface-soft: #f9fafb;    /* secondary surfaces */
+  --bg: #e5e7eb;
+  --shell-bg: #f3f4f6;
+  --surface: #ffffff;
+  --surface-soft: #f9fafb;
 
   --border-subtle: #e5e7eb;
   --border-strong: #d1d5db;
 
-  --text: #111827;            /* main text */
-  --text-subtle: #6b7280;     /* secondary text */
+  --text: #111827;
+  --text-subtle: #6b7280;
 
-  --accent: #2563eb;          /* primary blue */
+  --accent: #2563eb;
   --accent-soft: #e0ecff;
   --accent-strong: #1d4ed8;
 
@@ -49,32 +49,32 @@ body {
   --bottom-nav-border: #e5e7eb;
 }
 
-/* DARK MODE: truly dark, but readable */
+/* DARK MODE: readable */
 html[data-theme="dark"] {
-  --bg: #020617;              /* page background */
-  --shell-bg: #020617;        /* shell background */
-  --surface: #111827;         /* main cards (dark slate) */
+  --bg: #020617;
+  --shell-bg: #020617;
+  --surface: #111827;
   --surface-soft: #020617;
 
   --border-subtle: #1f2937;
   --border-strong: #0b1120;
 
-  --text: #e5e7eb;            /* main text, light */
+  --text: #e5e7eb;
   --text-subtle: #9ca3af;
 
-  --accent: #60a5fa;          /* bright blue */
+  --accent: #60a5fa;
   --accent-soft: #172554;
   --accent-strong: #3b82f6;
 
   --user-bubble: #3b82f6;
   --user-bubble-text: #f9fafb;
 
-  --assistant-bubble: #1f2937;        /* dark gray bubble */
+  --assistant-bubble: #1f2937;
   --assistant-bubble-border: #334155;
 
   --input-bg: #020617;
 
-  --bottom-nav-bg: #111827;           /* dark bar */
+  --bottom-nav-bg: #111827;
   --bottom-nav-border: #1f2937;
 }
 
@@ -135,11 +135,16 @@ html[data-theme="dark"] .app-shell {
 .app-header {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  padding: 0.7rem 1rem;
+  padding: 0.65rem 1rem;
   background: rgba(15, 23, 42, 0.98);
   color: #f9fafb;
   border-bottom: 1px solid rgba(148, 163, 184, 0.5);
+}
+
+.header-left {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
 }
 
 .app-logo {
@@ -147,28 +152,11 @@ html[data-theme="dark"] .app-shell {
   font-size: 0.95rem;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  text-decoration: none;
-  color: inherit;
 }
 
-.app-nav {
-  display: flex;
-  align-items: center;
-}
-
-.app-nav a {
-  margin-left: 0.45rem;
+.app-slogan {
   font-size: 0.8rem;
-  text-decoration: none;
-  color: #e5e7eb;
-  padding: 0.25rem 0.6rem;
-  border-radius: 999px;
-  transition: background-color 0.15s ease, transform 0.1s ease, color 0.15s ease;
-}
-
-.app-nav a:hover {
-  background-color: rgba(148, 163, 184, 0.25);
-  transform: translateY(-1px);
+  color: #d1d5db;
 }
 
 /* ---------- MAIN ---------- */
@@ -221,25 +209,11 @@ html[data-theme="dark"] .chat-card {
   border-bottom: 1px solid rgba(148, 163, 184, 0.35);
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 0.6rem;
+  justify-content: flex-end;
 }
 
 .chat-header-main {
   flex: 1;
-}
-
-.chat-title {
-  margin: 0 0 0.15rem 0;
-  font-size: 1.02rem;
-  font-weight: 700;
-  letter-spacing: 0.02em;
-}
-
-.chat-subtitle {
-  margin: 0;
-  font-size: 0.8rem;
-  color: var(--text-subtle);
 }
 
 .chat-header-action {
@@ -314,7 +288,6 @@ html[data-theme="dark"] .chat-card {
   box-shadow: 0 6px 14px rgba(15, 23, 42, 0.1);
 }
 
-/* Dark – keep readable but soft */
 html[data-theme="dark"] .message-bubble.assistant {
   box-shadow: 0 6px 14px rgba(0, 0, 0, 0.8);
 }
@@ -355,7 +328,7 @@ html[data-theme="dark"] .message-bubble.assistant {
   color: var(--text-subtle);
 }
 
-/* ---------- INPUT AREA (big separate frame) ---------- */
+/* ---------- INPUT AREA (big separate frame + actions) ---------- */
 
 .input-area {
   padding: 0.55rem 0.8rem 0.75rem;
@@ -363,7 +336,7 @@ html[data-theme="dark"] .message-bubble.assistant {
   background-color: rgba(15, 23, 42, 0.02);
   display: flex;
   flex-direction: column;
-  gap: 0.35rem;
+  gap: 0.4rem;
 }
 
 .input-label-row {
@@ -409,13 +382,44 @@ html[data-theme="dark"] .message-bubble.assistant {
   box-shadow: 0 0 0 1px rgba(37, 99, 235, 0.25);
 }
 
-/* ---------- BOTTOM NAV BAR (Google‑Play style) ---------- */
+/* Input action buttons row */
+
+.input-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.4rem;
+}
+
+.input-button {
+  border-radius: 999px;
+  border: 1px solid var(--border-subtle);
+  padding: 0.35rem 0.9rem;
+  font-size: 0.8rem;
+  cursor: pointer;
+  background-color: var(--surface-soft);
+  color: var(--text-subtle);
+}
+
+.input-button-primary {
+  background: linear-gradient(135deg, var(--accent), var(--accent-strong));
+  color: #ffffff;
+  border-color: transparent;
+  box-shadow: 0 8px 18px rgba(15, 23, 42, 0.4);
+}
+
+.input-button:disabled {
+  opacity: 0.7;
+  cursor: default;
+  box-shadow: none;
+}
+
+/* ---------- BOTTOM NAV BAR (Accueil / Paramètres / À propos) ---------- */
 
 .bottom-nav {
   width: 100%;
   max-width: 720px;
   align-self: center;
-  margin-top: 0.15rem;
+  margin: 0.15rem auto 0.5rem;
   padding: 0.4rem 0.7rem 0.5rem;
   background-color: var(--bottom-nav-bg);
   border-radius: 999px;
@@ -426,7 +430,6 @@ html[data-theme="dark"] .message-bubble.assistant {
   box-shadow: 0 -6px 20px rgba(15, 23, 42, 0.35);
 }
 
-/* darker but readable in dark mode */
 html[data-theme="dark"] .bottom-nav {
   box-shadow: 0 -6px 24px rgba(0, 0, 0, 0.85);
 }
@@ -434,44 +437,37 @@ html[data-theme="dark"] .bottom-nav {
 .bottom-nav-item {
   flex: 1;
   border-radius: 999px;
-  border: none;
-  background: transparent;
+  text-decoration: none;
   padding: 0.35rem 0.2rem;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 0.1rem;
   font-size: 0.78rem;
-  cursor: pointer;
-  color: var(--text-subtle); /* always readable contrast */
+  color: var(--text-subtle);
+  transition: background-color 0.15s ease, color 0.15s ease;
 }
 
-.bottom-nav-item--primary {
+.bottom-nav-item--active {
   background: linear-gradient(135deg, var(--accent), var(--accent-strong));
   color: #ffffff;
   box-shadow: 0 10px 20px rgba(15, 23, 42, 0.6);
 }
 
-.bottom-nav-item--primary .bottom-nav-icon,
-.bottom-nav-item--primary .bottom-nav-label {
+.bottom-nav-item--active .bottom-nav-icon,
+.bottom-nav-item--active .bottom-nav-label {
   color: #ffffff;
 }
 
 .bottom-nav-icon {
   font-size: 1rem;
   line-height: 1;
-  color: inherit;  /* uses text-subtle or white */
+  color: inherit;
 }
 
 .bottom-nav-label {
   font-size: 0.7rem;
   line-height: 1.1;
-}
-
-.bottom-nav-item:disabled {
-  opacity: 0.7;
-  cursor: default;
-  box-shadow: none;
 }
 
 /* ---------- GENERIC PAGES (settings, about) ---------- */
