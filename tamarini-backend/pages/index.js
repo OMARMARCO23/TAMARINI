@@ -18,8 +18,8 @@ export default function Home() {
       placeholder:
         "Écris ce que tu comprends, ta démarche, ou ta réponse finale…",
       send: "Envoyer",
-      checkStep: "Vérifier l’étape",
-      similarExercise: "Exercice similaire",
+      checkStep: "Étape",
+      similarExercise: "Similaire",
       newExercise: "Nouvel exercice",
       loading: "TAMARINI réfléchit…",
       attached: "Image jointe :",
@@ -39,8 +39,8 @@ export default function Home() {
       placeholder:
         "اكتب ما تفهمه من التمرين، أو خطواتك، أو الجواب النهائي…",
       send: "إرسال",
-      checkStep: "تحقّق من الخطوة",
-      similarExercise: "تمرين مشابه",
+      checkStep: "خطوة",
+      similarExercise: "مشابه",
       newExercise: "تمرين جديد",
       loading: "تَمَارِينِي يفكّر…",
       attached: "صورة مرفقة:",
@@ -52,6 +52,7 @@ export default function Home() {
   };
 
   const t = TEXT[language] || TEXT.fr;
+  const isRTL = language === "ar";
 
   const [messages, setMessages] = useState([
     {
@@ -113,7 +114,7 @@ export default function Home() {
 
       if (imageData) {
         body.image = {
-          base64: imageData.dataUrl, // full data URL, backend will strip prefix
+          base64: imageData.dataUrl, // full data URL, backend strips prefix
           mimeType: imageData.mimeType,
         };
       }
@@ -147,7 +148,7 @@ export default function Home() {
       setMessages((prev) => [...prev, botMessage]);
       setTimeout(scrollToBottom, 50);
     } catch (err) {
-      console.error("Error talking to TAMARINI:", err);
+      console.error("TAMARINI API error:", err);
       const errorMessage = {
         id: Date.now().toString() + "-err",
         sender: "assistant",
@@ -162,7 +163,6 @@ export default function Home() {
 
   // mode: "normal" | "check-step" | "similar-exercise"
   const handleSend = (mode = "normal") => {
-    // For normal / check-step, need some input or image
     if (mode !== "similar-exercise" && !inputText.trim() && !pendingImage) {
       return;
     }
@@ -170,7 +170,6 @@ export default function Home() {
     let textToSend = "";
 
     if (mode === "similar-exercise") {
-      // Ignore current input, send a clear request for similar exercise
       textToSend = t.defaultSimilarRequest;
     } else {
       if (inputText.trim()) {
@@ -180,7 +179,6 @@ export default function Home() {
       }
     }
 
-    // If still empty (shouldn't happen in normal/check-step), abort
     if (!textToSend) return;
 
     const userMessage = {
@@ -195,11 +193,7 @@ export default function Home() {
 
     if (mode !== "similar-exercise") {
       setInputText("");
-    } else {
-      // For similar-exercise, keep input as is (user might have notes)
-      setInputText(inputText);
     }
-
     const imageForThisMessage = pendingImage;
     setPendingImage(null);
     setTimeout(scrollToBottom, 50);
@@ -219,10 +213,9 @@ export default function Home() {
     setPendingImage(null);
   };
 
-  const isRTL = language === "ar";
-
   return (
-    <>
+    <div className="chat-page">
+      {/* MAIN CHAT CARD */}
       <div className="chat-card">
         <div className="chat-header">
           <div className="chat-header-main">
@@ -253,9 +246,7 @@ export default function Home() {
                     "message-bubble " +
                     (msg.sender === "user" ? "user" : "assistant")
                   }
-                  style={{
-                    textAlign: isRTL ? "right" : "left",
-                  }}
+                  style={{ textAlign: isRTL ? "right" : "left" }}
                 >
                   {msg.imageUrl && (
                     <img
@@ -288,7 +279,7 @@ export default function Home() {
           <div className="input-area">
             <div className="input-label-row">
               <label className="upload-label">
-                {t.upload}
+                📷 {t.upload}
                 <input
                   type="file"
                   accept="image/*"
@@ -309,35 +300,38 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Bottom buttons - like a modern mobile app action bar */}
-      <div className="footer-actions">
-        <div className="footer-actions-inner">
-          <button
-            type="button"
-            className="footer-button footer-button-secondary"
-            onClick={() => handleSend("check-step")}
-            disabled={loading}
-          >
-            {t.checkStep}
-          </button>
-          <button
-            type="button"
-            className="footer-button footer-button-primary"
-            onClick={() => handleSend("normal")}
-            disabled={loading}
-          >
-            {t.send}
-          </button>
-          <button
-            type="button"
-            className="footer-button footer-button-secondary"
-            onClick={() => handleSend("similar-exercise")}
-            disabled={loading}
-          >
-            {t.similarExercise}
-          </button>
-        </div>
-      </div>
-    </>
+      {/* BOTTOM NAV BAR (Google‑Play style) */}
+      <nav className="bottom-nav">
+        <button
+          type="button"
+          className="bottom-nav-item"
+          onClick={() => handleSend("check-step")}
+          disabled={loading}
+        >
+          <span className="bottom-nav-icon">✓</span>
+          <span className="bottom-nav-label">{t.checkStep}</span>
+        </button>
+
+        <button
+          type="button"
+          className="bottom-nav-item bottom-nav-item--primary"
+          onClick={() => handleSend("normal")}
+          disabled={loading}
+        >
+          <span className="bottom-nav-icon">➤</span>
+          <span className="bottom-nav-label">{t.send}</span>
+        </button>
+
+        <button
+          type="button"
+          className="bottom-nav-item"
+          onClick={() => handleSend("similar-exercise")}
+          disabled={loading}
+        >
+          <span className="bottom-nav-icon">♻</span>
+          <span className="bottom-nav-label">{t.similarExercise}</span>
+        </button>
+      </nav>
+    </div>
   );
 }
