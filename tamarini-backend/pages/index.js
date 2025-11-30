@@ -8,8 +8,6 @@ export default function Home() {
 
   const TEXT = {
     fr: {
-      title: "TAMARINI",
-      subtitle: "Tuteur de maths qui t’aide à comprendre, pas juste à copier.",
       initial:
         "Salut, je suis TAMARINI.\n" +
         "Envoie une photo claire de ton exercice de maths, ou écris-le ici, puis explique-moi ce que tu as compris. " +
@@ -18,7 +16,6 @@ export default function Home() {
       placeholder:
         "Écris ce que tu comprends, ta démarche, ou ta réponse finale…",
       send: "Envoyer",
-      checkStep: "Étape",
       similarExercise: "Similaire",
       newExercise: "Nouvel exercice",
       loading: "TAMARINI réfléchit…",
@@ -29,8 +26,6 @@ export default function Home() {
       defaultSimilarRequest: "Je voudrais un exercice similaire au précédent.",
     },
     ar: {
-      title: "تَمَارِينِي",
-      subtitle: "معلّم رياضيات يساعدك على الفهم، ليس فقط على إعطاء الإجابة.",
       initial:
         "مرحباً، أنا تَمَارِينِي.\n" +
         "التقط صورة واضحة لتمرين الرياضيات، أو اكتب السؤال هنا، ثم أخبرني ماذا فهمت حتى الآن. " +
@@ -39,7 +34,6 @@ export default function Home() {
       placeholder:
         "اكتب ما تفهمه من التمرين، أو خطواتك، أو الجواب النهائي…",
       send: "إرسال",
-      checkStep: "خطوة",
       similarExercise: "مشابه",
       newExercise: "تمرين جديد",
       loading: "تَمَارِينِي يفكّر…",
@@ -71,7 +65,7 @@ export default function Home() {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
-  // When language changes, update the first assistant message
+  // Update first message when language changes
   useEffect(() => {
     setMessages((prev) => {
       const copy = [...prev];
@@ -131,7 +125,7 @@ export default function Home() {
         data = await res.json();
       } else {
         const text = await res.text();
-        console.error("Non-JSON response from server:", text);
+        console.error("Non-JSON response:", text);
         throw new Error("Server did not return JSON");
       }
 
@@ -161,7 +155,7 @@ export default function Home() {
     }
   };
 
-  // mode: "normal" | "check-step" | "similar-exercise"
+  // mode: "normal" | "similar-exercise"
   const handleSend = (mode = "normal") => {
     if (mode !== "similar-exercise" && !inputText.trim() && !pendingImage) {
       return;
@@ -218,10 +212,7 @@ export default function Home() {
       {/* MAIN CHAT CARD */}
       <div className="chat-card">
         <div className="chat-header">
-          <div className="chat-header-main">
-            <h2 className="chat-title">{t.title}</h2>
-            <p className="chat-subtitle">{t.subtitle}</p>
-          </div>
+          <div className="chat-header-main" />
           <button
             type="button"
             className="chat-header-action"
@@ -275,7 +266,7 @@ export default function Home() {
 
           {loading && <div className="loading-bar">{t.loading}</div>}
 
-          {/* Bigger, separate input frame */}
+          {/* Bigger, separate input frame + actions */}
           <div className="input-area">
             <div className="input-label-row">
               <label className="upload-label">
@@ -296,42 +287,28 @@ export default function Home() {
               onChange={(e) => setInputText(e.target.value)}
               style={{ direction: isRTL ? "rtl" : "ltr" }}
             />
+
+            <div className="input-actions">
+              <button
+                type="button"
+                className="input-button input-button-secondary"
+                onClick={() => handleSend("similar-exercise")}
+                disabled={loading}
+              >
+                {t.similarExercise}
+              </button>
+              <button
+                type="button"
+                className="input-button input-button-primary"
+                onClick={() => handleSend("normal")}
+                disabled={loading}
+              >
+                {t.send}
+              </button>
+            </div>
           </div>
         </div>
       </div>
-
-      {/* BOTTOM NAV BAR (Google‑Play style) */}
-      <nav className="bottom-nav">
-        <button
-          type="button"
-          className="bottom-nav-item"
-          onClick={() => handleSend("check-step")}
-          disabled={loading}
-        >
-          <span className="bottom-nav-icon">✓</span>
-          <span className="bottom-nav-label">{t.checkStep}</span>
-        </button>
-
-        <button
-          type="button"
-          className="bottom-nav-item bottom-nav-item--primary"
-          onClick={() => handleSend("normal")}
-          disabled={loading}
-        >
-          <span className="bottom-nav-icon">➤</span>
-          <span className="bottom-nav-label">{t.send}</span>
-        </button>
-
-        <button
-          type="button"
-          className="bottom-nav-item"
-          onClick={() => handleSend("similar-exercise")}
-          disabled={loading}
-        >
-          <span className="bottom-nav-icon">♻</span>
-          <span className="bottom-nav-label">{t.similarExercise}</span>
-        </button>
-      </nav>
     </div>
   );
 }
