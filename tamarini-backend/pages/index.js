@@ -1,6 +1,6 @@
 // tamarini-backend/pages/index.js
 
-import React, { useState, useRef } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import { useSettings } from "../context/SettingsContext";
 
 export default function Home() {
@@ -14,14 +14,19 @@ export default function Home() {
         "Salut, je suis TAMARINI.\n" +
         "Envoie une photo claire de ton exercice de maths, ou écris-le ici, puis explique-moi ce que tu as compris. " +
         "Je vais te guider étape par étape, et à la fin on vérifiera ta réponse ensemble.",
-      upload: "Ajouter une image",
+      upload: "Image",
       placeholder:
         "Écris ce que tu comprends, ta démarche, ou ta réponse finale…",
       send: "Envoyer",
+      checkStep: "Vérifier l’étape",
+      similarExercise: "Exercice similaire",
+      newExercise: "Nouvel exercice",
       loading: "TAMARINI réfléchit…",
       attached: "Image jointe :",
       errorGeneric:
         "Désolé, j’ai eu un problème pour réfléchir à ça. Réessaie dans un instant.",
+      defaultImageText: "Voici l’image de mon exercice.",
+      defaultSimilarRequest: "Je voudrais un exercice similaire au précédent.",
     },
     ar: {
       title: "تَمَارِينِي",
@@ -30,14 +35,19 @@ export default function Home() {
         "مرحباً، أنا تَمَارِينِي.\n" +
         "التقط صورة واضحة لتمرين الرياضيات، أو اكتب السؤال هنا، ثم أخبرني ماذا فهمت حتى الآن. " +
         "سأرشدك خطوة بخطوة، وفي النهاية نتحقق من إجابتك معاً.",
-      upload: "رفع صورة",
+      upload: "صورة",
       placeholder:
         "اكتب ما تفهمه من التمرين، أو خطواتك، أو الجواب النهائي…",
       send: "إرسال",
+      checkStep: "تحقّق من الخطوة",
+      similarExercise: "تمرين مشابه",
+      newExercise: "تمرين جديد",
       loading: "تَمَارِينِي يفكّر…",
       attached: "صورة مرفقة:",
       errorGeneric:
         "عذراً، حدث خطأ أثناء المعالجة. حاول مرة أخرى بعد قليل.",
+      defaultImageText: "هذه صورة التمرين.",
+      defaultSimilarRequest: "أريد تمريناً مشابهاً للتمرين السابق.",
     },
   };
 
@@ -60,6 +70,17 @@ export default function Home() {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
+  // When language changes, update the first assistant message
+  useEffect(() => {
+    setMessages((prev) => {
+      const copy = [...prev];
+      if (copy.length > 0 && copy[0].sender === "assistant") {
+        copy[0] = { ...copy[0], text: t.initial };
+      }
+      return copy;
+    });
+  }, [language]);
+
   const handleFileChange = (event) => {
     const file = event.target.files?.[0];
     if (!file) return;
@@ -79,7 +100,7 @@ export default function Home() {
     reader.readAsDataURL(file);
   };
 
-  const sendMessageToBackend = async (newMessages, imageData) => {
+  const sendMessageToBackend = async (newMessages, imageData, mode = "normal") => {
     try {
       setLoading(true);
 
@@ -88,11 +109,11 @@ export default function Home() {
         text: m.text,
       }));
 
-      const body = { messages: apiMessages, language };
+      const body = { messages: apiMessages, language, mode };
 
       if (imageData) {
         body.image = {
-          base64: imageData.dataUrl, // full data URL, backend strips prefix
+          base64: imageData.dataUrl, // full data URL, backend will strip prefix
           mimeType: imageData.mimeType,
         };
       }
@@ -139,18 +160,28 @@ export default function Home() {
     }
   };
 
-  const handleSend = () => {
-    if (!inputText.trim() && !pendingImage) {
+  // mode: "normal" | "check-step" | "similar-exercise"
+  const handleSend = (mode = "normal") => {
+    // For normal / check-step, need some input or image
+    if (mode !== "similar-exercise" && !inputText.trim() && !pendingImage) {
       return;
     }
 
-    const textToSend = inputText.trim()
-      ? inputText.trim()
-      : pendingImage
-      ? language === "ar"
-        ? "هذه صورة التمرين."
-        : "Voici l’image de mon exercice."
-      : "";
+    let textToSend = "";
+
+    if (mode === "similar-exercise") {
+      // Ignore current input, send a clear request for similar exercise
+      textToSend = t.defaultSimilarRequest;
+    } else {
+      if (inputText.trim()) {
+        textToSend = inputText.trim();
+      } else if (pendingImage) {
+        textToSend = t.defaultImageText;
+      }
+    }
+
+    // If still empty (shouldn't happen in normal/check-step), abort
+    if (!textToSend) return;
 
     const userMessage = {
       id: Date.now().toString(),
@@ -161,93 +192,152 @@ export default function Home() {
 
     const newMessages = [...messages, userMessage];
     setMessages(newMessages);
-    setInputText("");
+
+    if (mode !== "similar-exercise") {
+      setInputText("");
+    } else {
+      // For similar-exercise, keep input as is (user might have notes)
+      setInputText(inputText);
+    }
+
     const imageForThisMessage = pendingImage;
     setPendingImage(null);
     setTimeout(scrollToBottom, 50);
 
-    sendMessageToBackend(newMessages, imageForThisMessage);
+    sendMessageToBackend(newMessages, imageForThisMessage, mode);
   };
 
-  return (
-    <div className="chat-card">
-      <div className="chat-header">
-        <h2 className="chat-title">{t.title}</h2>
-        <p className="chat-subtitle">{t.subtitle}</p>
-      </div>
+  const handleNewExercise = () => {
+    setMessages([
+      {
+        id: Date.now().toString(),
+        sender: "assistant",
+        text: t.initial,
+      },
+    ]);
+    setInputText("");
+    setPendingImage(null);
+  };
 
-      <div className="chat-body">
-        <div className="messages-pane">
-          {messages.map((msg) => (
-            <div
-              key={msg.id}
-              className={
-                "message-row " +
-                (msg.sender === "user" ? "user" : "assistant")
-              }
-            >
+  const isRTL = language === "ar";
+
+  return (
+    <>
+      <div className="chat-card">
+        <div className="chat-header">
+          <div className="chat-header-main">
+            <h2 className="chat-title">{t.title}</h2>
+            <p className="chat-subtitle">{t.subtitle}</p>
+          </div>
+          <button
+            type="button"
+            className="chat-header-action"
+            onClick={handleNewExercise}
+          >
+            {t.newExercise}
+          </button>
+        </div>
+
+        <div className="chat-body">
+          <div className="messages-pane">
+            {messages.map((msg) => (
               <div
+                key={msg.id}
                 className={
-                  "message-bubble " +
+                  "message-row " +
                   (msg.sender === "user" ? "user" : "assistant")
                 }
               >
-                {msg.imageUrl && (
-                  <img
-                    src={msg.imageUrl}
-                    alt="exercise"
-                    className="message-image"
-                  />
-                )}
-                {msg.text}
+                <div
+                  className={
+                    "message-bubble " +
+                    (msg.sender === "user" ? "user" : "assistant")
+                  }
+                  style={{
+                    textAlign: isRTL ? "right" : "left",
+                  }}
+                >
+                  {msg.imageUrl && (
+                    <img
+                      src={msg.imageUrl}
+                      alt="exercise"
+                      className="message-image"
+                    />
+                  )}
+                  {msg.text}
+                </div>
               </div>
-            </div>
-          ))}
-          <div ref={bottomRef} />
-        </div>
-
-        {pendingImage && (
-          <div className="preview-bar">
-            <span className="preview-label">{t.attached}</span>
-            <img
-              src={pendingImage.previewUrl}
-              alt="preview"
-              className="preview-thumb"
-            />
+            ))}
+            <div ref={bottomRef} />
           </div>
-        )}
 
-        {loading && <div className="loading-bar">{t.loading}</div>}
-
-        <div className="input-area">
-          <div className="input-row">
-            <label className="upload-label">
-              {t.upload}
-              <input
-                type="file"
-                accept="image/*"
-                style={{ display: "none" }}
-                onChange={handleFileChange}
+          {pendingImage && (
+            <div className="preview-bar">
+              <span className="preview-label">{t.attached}</span>
+              <img
+                src={pendingImage.previewUrl}
+                alt="preview"
+                className="preview-thumb"
               />
-            </label>
+            </div>
+          )}
+
+          {loading && <div className="loading-bar">{t.loading}</div>}
+
+          {/* Bigger, separate input frame */}
+          <div className="input-area">
+            <div className="input-label-row">
+              <label className="upload-label">
+                {t.upload}
+                <input
+                  type="file"
+                  accept="image/*"
+                  style={{ display: "none" }}
+                  onChange={handleFileChange}
+                />
+              </label>
+            </div>
 
             <textarea
               className="input-textarea"
               placeholder={t.placeholder}
               value={inputText}
               onChange={(e) => setInputText(e.target.value)}
+              style={{ direction: isRTL ? "rtl" : "ltr" }}
             />
-
-            <button
-              onClick={handleSend}
-              className="send-button"
-              disabled={loading}
-            >
-              {t.send}
-            </button>
           </div>
         </div>
       </div>
-    </div>
+
+      {/* Bottom buttons - like a modern mobile app action bar */}
+      <div className="footer-actions">
+        <div className="footer-actions-inner">
+          <button
+            type="button"
+            className="footer-button footer-button-secondary"
+            onClick={() => handleSend("check-step")}
+            disabled={loading}
+          >
+            {t.checkStep}
+          </button>
+          <button
+            type="button"
+            className="footer-button footer-button-primary"
+            onClick={() => handleSend("normal")}
+            disabled={loading}
+          >
+            {t.send}
+          </button>
+          <button
+            type="button"
+            className="footer-button footer-button-secondary"
+            onClick={() => handleSend("similar-exercise")}
+            disabled={loading}
+          >
+            {t.similarExercise}
+          </button>
+        </div>
+      </div>
+    </>
   );
 }
