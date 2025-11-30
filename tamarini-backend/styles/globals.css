@@ -20,21 +20,21 @@ body {
 
 /* ---------- THEME TOKENS ---------- */
 
+/* LIGHT MODE: neutral, not too bright */
 :root {
-  /* Light theme */
-  --bg: #f3f4f6;
-  --shell-bg: #eef1f7;
-  --surface: #ffffff;
-  --surface-soft: #f9fafb;
+  --bg: #e5e7eb;              /* page background */
+  --shell-bg: #f3f4f6;        /* shell background */
+  --surface: #ffffff;         /* main card */
+  --surface-soft: #f9fafb;    /* secondary surfaces */
 
   --border-subtle: #e5e7eb;
   --border-strong: #d1d5db;
 
-  --text: #0f172a;
-  --text-subtle: #6b7280;
+  --text: #111827;            /* main text */
+  --text-subtle: #6b7280;     /* secondary text */
 
-  --accent: #2563eb;
-  --accent-soft: #dbeafe;
+  --accent: #2563eb;          /* primary blue */
+  --accent-soft: #e0ecff;
   --accent-strong: #1d4ed8;
 
   --user-bubble: #2563eb;
@@ -49,40 +49,39 @@ body {
   --bottom-nav-border: #e5e7eb;
 }
 
-/* Dark theme */
-
+/* DARK MODE: truly dark, but readable */
 html[data-theme="dark"] {
-  --bg: #020617;
-  --shell-bg: #020617;
-  --surface: #020617;
+  --bg: #020617;              /* page background */
+  --shell-bg: #020617;        /* shell background */
+  --surface: #111827;         /* main cards (dark slate) */
   --surface-soft: #020617;
 
   --border-subtle: #1f2937;
-  --border-strong: #111827;
+  --border-strong: #0b1120;
 
-  --text: #e5e7eb;
+  --text: #e5e7eb;            /* main text, light */
   --text-subtle: #9ca3af;
 
-  --accent: #60a5fa;
-  --accent-soft: #1e293b;
+  --accent: #60a5fa;          /* bright blue */
+  --accent-soft: #172554;
   --accent-strong: #3b82f6;
 
   --user-bubble: #3b82f6;
   --user-bubble-text: #f9fafb;
 
-  --assistant-bubble: #020617;
-  --assistant-bubble-border: #1f2937;
+  --assistant-bubble: #1f2937;        /* dark gray bubble */
+  --assistant-bubble-border: #334155;
 
   --input-bg: #020617;
 
-  --bottom-nav-bg: #020617;
+  --bottom-nav-bg: #111827;           /* dark bar */
   --bottom-nav-border: #1f2937;
 }
 
 body {
   background:
-    radial-gradient(circle at top, rgba(129, 140, 248, 0.35), transparent 55%),
-    radial-gradient(circle at bottom, rgba(56, 189, 248, 0.3), transparent 55%),
+    radial-gradient(circle at top, rgba(129, 140, 248, 0.2), transparent 55%),
+    radial-gradient(circle at bottom, rgba(56, 189, 248, 0.18), transparent 55%),
     var(--bg);
   color: var(--text);
 }
@@ -107,12 +106,16 @@ body {
   overflow: hidden;
   background: linear-gradient(
       145deg,
-      rgba(15, 23, 42, 0.8),
+      rgba(15, 23, 42, 0.9),
       rgba(15, 23, 42, 0.6)
     ),
     var(--shell-bg);
-  box-shadow: 0 24px 70px rgba(15, 23, 42, 0.6);
+  box-shadow: 0 24px 60px rgba(15, 23, 42, 0.55);
   border: 1px solid rgba(148, 163, 184, 0.6);
+}
+
+html[data-theme="dark"] .app-shell {
+  background: linear-gradient(145deg, #020617, #111827);
 }
 
 @media (max-width: 640px) {
@@ -208,7 +211,7 @@ body {
 
 html[data-theme="dark"] .chat-card {
   background-color: var(--surface);
-  border-color: var(--border-strong);
+  border-color: var(--border-subtle);
 }
 
 /* Chat header inside card */
@@ -298,7 +301,7 @@ html[data-theme="dark"] .chat-card {
   background: linear-gradient(135deg, var(--user-bubble), var(--accent-strong));
   color: var(--user-bubble-text);
   border-bottom-right-radius: 0.35rem;
-  box-shadow: 0 8px 18px rgba(37, 99, 235, 0.6);
+  box-shadow: 0 8px 18px rgba(37, 99, 235, 0.55);
 }
 
 /* Assistant bubble */
@@ -311,8 +314,9 @@ html[data-theme="dark"] .chat-card {
   box-shadow: 0 6px 14px rgba(15, 23, 42, 0.1);
 }
 
+/* Dark – keep readable but soft */
 html[data-theme="dark"] .message-bubble.assistant {
-  box-shadow: 0 6px 14px rgba(15, 23, 42, 0.9);
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.8);
 }
 
 /* Images inside messages */
@@ -422,8 +426,9 @@ html[data-theme="dark"] .message-bubble.assistant {
   box-shadow: 0 -6px 20px rgba(15, 23, 42, 0.35);
 }
 
+/* darker but readable in dark mode */
 html[data-theme="dark"] .bottom-nav {
-  box-shadow: 0 -6px 24px rgba(0, 0, 0, 0.8);
+  box-shadow: 0 -6px 24px rgba(0, 0, 0, 0.85);
 }
 
 .bottom-nav-item {
@@ -438,13 +443,13 @@ html[data-theme="dark"] .bottom-nav {
   gap: 0.1rem;
   font-size: 0.78rem;
   cursor: pointer;
-  color: var(--text-subtle);
+  color: var(--text-subtle); /* always readable contrast */
 }
 
 .bottom-nav-item--primary {
   background: linear-gradient(135deg, var(--accent), var(--accent-strong));
   color: #ffffff;
-  box-shadow: 0 10px 20px rgba(15, 23, 42, 0.5);
+  box-shadow: 0 10px 20px rgba(15, 23, 42, 0.6);
 }
 
 .bottom-nav-item--primary .bottom-nav-icon,
@@ -455,7 +460,7 @@ html[data-theme="dark"] .bottom-nav {
 .bottom-nav-icon {
   font-size: 1rem;
   line-height: 1;
-  color: var(--text-subtle);
+  color: inherit;  /* uses text-subtle or white */
 }
 
 .bottom-nav-label {
@@ -488,7 +493,7 @@ html[data-theme="dark"] .bottom-nav {
 
 html[data-theme="dark"] .card {
   background-color: var(--surface);
-  border-color: var(--border-strong);
+  border-color: var(--border-subtle);
 }
 
 .card h1 {
@@ -519,7 +524,7 @@ html[data-theme="dark"] .card {
   border-radius: 999px;
   padding: 0.3rem 0.8rem;
   border: 1px solid var(--border-subtle);
-  background-color: rgba(255, 255, 255, 0.9);
+  background-color: rgba(255, 255, 255, 0.95);
   font-size: 0.8rem;
   cursor: pointer;
 }
