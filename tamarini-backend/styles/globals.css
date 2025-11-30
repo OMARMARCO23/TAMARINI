@@ -22,10 +22,7 @@ body {
 
 :root {
   /* Light theme */
-  --bg: #e5e7eb; /* page background */
-  --bg-gradient-top: #0ea5e9;
-  --bg-gradient-bottom: #6366f1;
-
+  --bg: #e5e7eb;
   --surface: #ffffff;
   --surface-soft: #f9fafb;
   --surface-strong: #ffffff;
@@ -36,7 +33,7 @@ body {
   --text: #0f172a;
   --text-subtle: #6b7280;
 
-  --accent: #6366f1; /* primary */
+  --accent: #6366f1;
   --accent-soft: #e0e7ff;
   --accent-strong: #4f46e5;
 
@@ -52,9 +49,6 @@ body {
 
 html[data-theme="dark"] {
   --bg: #020617;
-  --bg-gradient-top: #111827;
-  --bg-gradient-bottom: #1d4ed8;
-
   --surface: #020617;
   --surface-soft: #020617;
   --surface-strong: #0b1120;
@@ -78,21 +72,14 @@ html[data-theme="dark"] {
 }
 
 body {
-  background: radial-gradient(
-      circle at top,
-      rgba(37, 99, 235, 0.35),
-      transparent 55%
-    ),
-    radial-gradient(
-      circle at bottom,
-      rgba(59, 130, 246, 0.3),
-      transparent 55%
-    ),
+  background:
+    radial-gradient(circle at top, rgba(37, 99, 235, 0.35), transparent 55%),
+    radial-gradient(circle at bottom, rgba(59, 130, 246, 0.3), transparent 55%),
     var(--bg);
   color: var(--text);
 }
 
-/* ---------- APP SHELL (WEB + MOBILE) ---------- */
+/* ---------- APP SHELL ---------- */
 
 .app-root {
   min-height: 100vh;
@@ -102,8 +89,6 @@ body {
   padding: 16px;
 }
 
-/* On desktop: centered card with rounded corners.
-   On small screens: full width, no huge margins. */
 .app-shell {
   width: 100%;
   max-width: 1040px;
@@ -114,16 +99,15 @@ body {
   overflow: hidden;
   background: linear-gradient(
       135deg,
-      rgba(15, 23, 42, 0.6),
-      rgba(15, 23, 42, 0.3)
+      rgba(15, 23, 42, 0.7),
+      rgba(15, 23, 42, 0.45)
     ),
     radial-gradient(circle at top left, rgba(148, 163, 253, 0.4), transparent),
     radial-gradient(circle at bottom right, rgba(96, 165, 250, 0.4), transparent);
-  box-shadow: 0 24px 60px rgba(15, 23, 42, 0.4);
+  box-shadow: 0 24px 60px rgba(15, 23, 42, 0.5);
   border: 1px solid rgba(148, 163, 184, 0.6);
 }
 
-/* On phones: remove heavy card framing, make it feel native */
 @media (max-width: 640px) {
   .app-root {
     padding: 0;
@@ -136,20 +120,16 @@ body {
   }
 }
 
-/* ---------- HEADER / TOP BAR ---------- */
+/* ---------- HEADER ---------- */
 
 .app-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 0.7rem 1rem;
-  background: linear-gradient(
-    90deg,
-    rgba(15, 23, 42, 0.95),
-    rgba(15, 23, 42, 0.92)
-  );
+  background: rgba(15, 23, 42, 0.97);
   color: #f9fafb;
-  border-bottom: 1px solid rgba(148, 163, 184, 0.5);
+  border-bottom: 1px solid rgba(148, 163, 184, 0.4);
 }
 
 .app-logo {
@@ -177,7 +157,7 @@ body {
 }
 
 .app-nav a:hover {
-  background-color: rgba(148, 163, 184, 0.2);
+  background-color: rgba(148, 163, 184, 0.25);
   transform: translateY(-1px);
 }
 
@@ -187,8 +167,9 @@ body {
   flex: 1;
   padding: 1rem;
   display: flex;
-  justify-content: center;
-  align-items: stretch;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
   background: radial-gradient(
       circle at top right,
       rgba(148, 163, 253, 0.25),
@@ -202,7 +183,6 @@ body {
     var(--surface-soft);
 }
 
-/* On very small devices: slightly less padding */
 @media (max-width: 480px) {
   .app-main {
     padding: 0.75rem 0.5rem 0.7rem;
@@ -213,32 +193,39 @@ body {
 
 .chat-card {
   width: 100%;
-  max-width: 540px;
+  max-width: 640px;
   margin: 0 auto;
   background-color: var(--surface);
-  border-radius: 20px;
+  border-radius: 18px;
   border: 1px solid var(--border-subtle);
   display: flex;
   flex-direction: column;
-  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.35);
+  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.45);
 }
 
-/* Dark mode elevation */
 html[data-theme="dark"] .chat-card {
-  background: radial-gradient(circle at top right, #020617, #020617);
+  background-color: var(--surface-strong);
   border-color: var(--border-strong);
 }
 
-/* Chat header */
+/* Chat header inside card */
 
 .chat-header {
-  padding: 0.75rem 0.8rem 0.4rem;
+  padding: 0.7rem 0.8rem 0.5rem;
   border-bottom: 1px solid rgba(148, 163, 184, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.chat-header-main {
+  flex: 1;
 }
 
 .chat-title {
   margin: 0 0 0.15rem 0;
-  font-size: 1.05rem;
+  font-size: 1.02rem;
   font-weight: 700;
   letter-spacing: 0.03em;
 }
@@ -249,12 +236,27 @@ html[data-theme="dark"] .chat-card {
   color: var(--text-subtle);
 }
 
+.chat-header-action {
+  border-radius: 999px;
+  border: 1px solid var(--border-subtle);
+  background-color: var(--surface-soft);
+  font-size: 0.8rem;
+  padding: 0.35rem 0.7rem;
+  cursor: pointer;
+  color: var(--accent-strong);
+  white-space: nowrap;
+}
+
+.chat-header-action:hover {
+  border-color: var(--accent);
+}
+
 /* Chat body */
 
 .chat-body {
   display: flex;
   flex-direction: column;
-  height: min(70vh, 640px);
+  height: min(66vh, 620px);
 }
 
 /* Messages */
@@ -306,8 +308,6 @@ html[data-theme="dark"] .chat-card {
   box-shadow: 0 6px 14px rgba(15, 23, 42, 0.12);
 }
 
-/* Dark tweak */
-
 html[data-theme="dark"] .message-bubble.assistant {
   box-shadow: 0 6px 14px rgba(15, 23, 42, 0.9);
 }
@@ -315,7 +315,7 @@ html[data-theme="dark"] .message-bubble.assistant {
 /* Images inside messages */
 
 .message-image {
-  max-width: 210px;
+  max-width: 220px;
   border-radius: 0.75rem;
   display: block;
   margin-bottom: 0.25rem;
@@ -348,18 +348,20 @@ html[data-theme="dark"] .message-bubble.assistant {
   color: var(--text-subtle);
 }
 
-/* Input area */
+/* ---------- INPUT AREA (bigger, separate frame) ---------- */
 
 .input-area {
+  padding: 0.5rem 0.7rem 0.7rem;
   border-top: 1px solid var(--border-subtle);
-  padding: 0.45rem 0.5rem 0.5rem;
   background-color: rgba(15, 23, 42, 0.02);
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
 }
 
-.input-row {
+.input-label-row {
   display: flex;
-  gap: 0.4rem;
-  align-items: flex-end;
+  justify-content: flex-start;
 }
 
 /* Upload button */
@@ -368,29 +370,29 @@ html[data-theme="dark"] .message-bubble.assistant {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 0.35rem 0.6rem;
+  padding: 0.35rem 0.7rem;
   border-radius: 999px;
   background-color: var(--accent-soft);
-  font-size: 0.75rem;
+  font-size: 0.78rem;
   cursor: pointer;
   white-space: nowrap;
   color: var(--accent-strong);
   border: 1px solid rgba(99, 102, 241, 0.4);
 }
 
-/* Text input */
+/* Bigger text area */
 
 .input-textarea {
-  flex: 1;
-  min-height: 2.2rem;
-  max-height: 5.8rem;
-  padding: 0.35rem 0.6rem;
-  border-radius: 999px;
+  width: 100%;
+  min-height: 3.2rem;
+  max-height: 7.2rem;
+  padding: 0.45rem 0.65rem;
+  border-radius: 0.9rem;
   border: 1px solid var(--border-subtle);
   background-color: var(--input-bg);
   resize: none;
   font-family: inherit;
-  font-size: 0.85rem;
+  font-size: 0.86rem;
   color: var(--text);
 }
 
@@ -400,23 +402,52 @@ html[data-theme="dark"] .message-bubble.assistant {
   box-shadow: 0 0 0 1px rgba(99, 102, 241, 0.25);
 }
 
-/* Send button */
+/* ---------- BOTTOM ACTION BAR (Google Play style) ---------- */
 
-.send-button {
-  padding: 0.4rem 0.75rem;
-  border-radius: 999px;
-  border: none;
-  background: linear-gradient(135deg, var(--accent), var(--accent-strong));
-  color: #fff;
-  font-weight: 700;
-  cursor: pointer;
-  font-size: 0.85rem;
-  white-space: nowrap;
-  box-shadow: 0 8px 18px rgba(15, 23, 42, 0.35);
+.footer-actions {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  padding-top: 0.7rem;
 }
 
-.send-button:disabled {
-  opacity: 0.6;
+.footer-actions-inner {
+  width: 100%;
+  max-width: 640px;
+  display: flex;
+  gap: 0.45rem;
+}
+
+.footer-button {
+  flex: 1;
+  border-radius: 999px;
+  border: 1px solid var(--border-subtle);
+  padding: 0.45rem 0.3rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  background-color: rgba(255, 255, 255, 0.9);
+  color: var(--text-subtle);
+  text-align: center;
+}
+
+html[data-theme="dark"] .footer-button {
+  background-color: rgba(15, 23, 42, 0.9);
+}
+
+.footer-button-primary {
+  background: linear-gradient(135deg, var(--accent), var(--accent-strong));
+  color: #ffffff;
+  border-color: transparent;
+  box-shadow: 0 8px 18px rgba(15, 23, 42, 0.4);
+}
+
+.footer-button-secondary {
+  background-color: var(--surface-soft);
+}
+
+.footer-button:disabled {
+  opacity: 0.7;
   cursor: default;
   box-shadow: none;
 }
@@ -425,7 +456,7 @@ html[data-theme="dark"] .message-bubble.assistant {
 
 .page-narrow {
   width: 100%;
-  max-width: 540px;
+  max-width: 640px;
   margin: 0 auto;
 }
 
