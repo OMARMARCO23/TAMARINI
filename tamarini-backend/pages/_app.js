@@ -3,21 +3,25 @@
 import React from "react";
 import Head from "next/head";
 import Link from "next/link";
+import { useRouter } from "next/router";
 import "../styles/globals.css";
 import { SettingsProvider, useSettings } from "../context/SettingsContext";
 
 function AppShell({ children }) {
+  const router = useRouter();
   const { language, theme } = useSettings();
 
   const labels = {
     fr: {
       title: "TAMARINI",
+      slogan: "Tuteur de maths qui t’aide à comprendre",
       home: "Accueil",
       settings: "Paramètres",
       about: "À propos",
     },
     ar: {
       title: "تَمَارِينِي",
+      slogan: "معلّم رياضيات يساعدك على الفهم",
       home: "الرئيسية",
       settings: "الإعدادات",
       about: "حول",
@@ -26,21 +30,56 @@ function AppShell({ children }) {
 
   const t = labels[language] || labels.fr;
 
+  const isActive = (path) => router.pathname === path;
+
   return (
     <div className={`app-root theme-${theme}`}>
-      {/* This shell is responsive: full width on mobile, card on desktop */}
       <div className="app-shell">
+        {/* Header: logo + slogan only */}
         <header className="app-header">
-          <Link href="/" className="app-logo">
-            {t.title}
-          </Link>
-          <nav className="app-nav">
-            <Link href="/">{t.home}</Link>
-            <Link href="/settings">{t.settings}</Link>
-            <Link href="/about">{t.about}</Link>
-          </nav>
+          <div className="header-left">
+            <span className="app-logo">{t.title}</span>
+            <span className="app-slogan">{t.slogan}</span>
+          </div>
         </header>
+
         <main className="app-main">{children}</main>
+
+        {/* Bottom navigation: Accueil / Paramètres / À propos */}
+        <nav className="bottom-nav">
+          <Link
+            href="/"
+            className={
+              "bottom-nav-item " +
+              (isActive("/") ? "bottom-nav-item--active" : "")
+            }
+          >
+            <span className="bottom-nav-icon">🏠</span>
+            <span className="bottom-nav-label">{t.home}</span>
+          </Link>
+
+          <Link
+            href="/settings"
+            className={
+              "bottom-nav-item " +
+              (isActive("/settings") ? "bottom-nav-item--active" : "")
+            }
+          >
+            <span className="bottom-nav-icon">⚙️</span>
+            <span className="bottom-nav-label">{t.settings}</span>
+          </Link>
+
+          <Link
+            href="/about"
+            className={
+              "bottom-nav-item " +
+              (isActive("/about") ? "bottom-nav-item--active" : "")
+            }
+          >
+            <span className="bottom-nav-icon">ℹ️</span>
+            <span className="bottom-nav-label">{t.about}</span>
+          </Link>
+        </nav>
       </div>
     </div>
   );
@@ -50,7 +89,6 @@ function MyApp({ Component, pageProps }) {
   return (
     <SettingsProvider>
       <Head>
-        {/* Mobile viewport so it behaves like a mobile app, but also fine on desktop */}
         <meta
           name="viewport"
           content="width=device-width, initial-scale=1, maximum-scale=1"
