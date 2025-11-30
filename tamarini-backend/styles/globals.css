@@ -22,8 +22,6 @@ body {
 
 :root {
   --color-bg: #fef3c7; /* warm pastel background */
-  --color-bg-gradient-top: #a5b4fc;
-  --color-bg-gradient-bottom: #f97316;
   --color-bg-surface: #ffffff;
   --color-border: #e5e7eb;
   --color-text: #111827;
@@ -37,12 +35,10 @@ body {
   --color-input-bg: #f9fafb;
 }
 
-/* Dark theme – keep playful but comfortable */
+/* Dark theme – playful but comfortable */
 
 html[data-theme="dark"] {
   --color-bg: #020617;
-  --color-bg-gradient-top: #4c1d95;
-  --color-bg-gradient-bottom: #f97316;
   --color-bg-surface: #020617;
   --color-border: #1f2937;
   --color-text: #f9fafb;
@@ -50,7 +46,7 @@ html[data-theme="dark"] {
   --color-primary: #f97316; /* orange */
   --color-primary-soft: #1e293b;
   --color-secondary: #22c55e;
-  --color-assistant-bubble: #111827;
+  --color-assistant-bubble: #0f172a;
   --color-user-bubble: #6366f1;
   --color-user-text: #f9fafb;
   --color-input-bg: #020617;
@@ -61,10 +57,13 @@ body {
   color: var(--color-text);
 }
 
-/* App shell */
+/* ---------- APP SHELL: "phone" in the center ---------- */
 
 .app-root {
   min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: stretch;
   background:
     radial-gradient(circle at top left, rgba(148, 163, 253, 0.4), transparent 55%),
     radial-gradient(circle at bottom right, rgba(251, 146, 60, 0.4), transparent 55%),
@@ -72,106 +71,113 @@ body {
   color: var(--color-text);
 }
 
+/* This is the "phone" width */
+.app-shell {
+  width: 100%;
+  max-width: 430px; /* looks like a modern phone in browser */
+  display: flex;
+  flex-direction: column;
+  margin: 0 auto;
+  border-radius: 1.75rem;
+  box-shadow: 0 24px 60px rgba(15, 23, 42, 0.35);
+  overflow: hidden;
+  border: 1px solid rgba(148, 163, 184, 0.5);
+}
+
+/* Header like a mobile app bar */
+
 .app-header {
-  position: sticky;
-  top: 0;
-  z-index: 20;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0.75rem 1.5rem;
+  padding: 0.65rem 1rem;
   background: linear-gradient(
     90deg,
     rgba(37, 99, 235, 0.95),
     rgba(236, 72, 153, 0.95)
   );
   color: #f9fafb;
-  backdrop-filter: blur(10px);
-  border-bottom: 1px solid rgba(148, 163, 184, 0.4);
 }
 
 .app-logo {
   font-weight: 800;
-  font-size: 1.15rem;
-  letter-spacing: 0.08em;
+  font-size: 0.95rem;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
   text-decoration: none;
   color: inherit;
 }
 
+.app-nav {
+  display: flex;
+  align-items: center;
+}
+
 .app-nav a {
-  margin-left: 1rem;
-  font-size: 0.9rem;
+  margin-left: 0.45rem;
+  font-size: 0.78rem;
   text-decoration: none;
   color: #fefce8;
-  padding: 0.3rem 0.7rem;
+  padding: 0.25rem 0.5rem;
   border-radius: 999px;
   transition: background-color 0.15s ease, transform 0.1s ease, color 0.15s ease;
 }
 
 .app-nav a:hover {
-  background-color: rgba(15, 23, 42, 0.2);
+  background-color: rgba(15, 23, 42, 0.25);
   transform: translateY(-1px);
 }
 
 .app-main {
-  padding: 1.5rem 1rem 2rem;
+  flex: 1;
+  padding: 0.65rem;
   display: flex;
   justify-content: center;
+  align-items: stretch;
+  background: radial-gradient(circle at top right, #f9fafb, #e5e7eb);
 }
 
-/* Chat card */
+/* Dark mode for shell */
+
+html[data-theme="dark"] .app-shell {
+  background: radial-gradient(circle at top right, #020617, #0f172a);
+  border-color: rgba(30, 64, 175, 0.7);
+}
+
+/* ---------- Chat card fills the shell ---------- */
 
 .chat-card {
   width: 100%;
-  max-width: 960px;
-  background: radial-gradient(circle at top right, #f9fafb, #e5e7eb);
-  border-radius: 1.5rem;
-  border: 1px solid rgba(148, 163, 184, 0.4);
+  background-color: transparent; /* app-main already has gradient */
   display: flex;
   flex-direction: column;
-  overflow: hidden;
-  box-shadow: 0 20px 45px rgba(15, 23, 42, 0.28);
 }
 
-/* Dark mode card */
-
-html[data-theme="dark"] .chat-card {
-  background: radial-gradient(circle at top right, #020617, #0f172a);
-  border-color: rgba(30, 64, 175, 0.6);
-}
-
-/* Chat header */
+/* Chat header inside card */
 
 .chat-header {
-  padding: 1rem 1.5rem 0.75rem;
-  border-bottom: 1px solid var(--color-border);
-  background: linear-gradient(
-    135deg,
-    rgba(56, 189, 248, 0.2),
-    rgba(236, 72, 153, 0.18)
-  );
+  padding: 0.5rem 0.25rem 0.25rem;
 }
 
 .chat-title {
-  margin: 0 0 0.2rem 0;
-  font-size: 1.25rem;
+  margin: 0 0 0.1rem 0;
+  font-size: 1rem;
   font-weight: 700;
   letter-spacing: 0.02em;
 }
 
 .chat-subtitle {
   margin: 0;
-  font-size: 0.85rem;
+  font-size: 0.78rem;
   color: var(--color-subtle);
 }
 
-/* Chat body */
+/* Chat body: behaves like a full-screen mobile view */
 
 .chat-body {
+  flex: 1;
   display: flex;
   flex-direction: column;
-  height: min(72vh, 660px);
 }
 
 /* Messages */
@@ -179,15 +185,12 @@ html[data-theme="dark"] .chat-card {
 .messages-pane {
   flex: 1;
   overflow-y: auto;
-  padding: 0.75rem 1.25rem;
-  background:
-    radial-gradient(circle at top left, rgba(56, 189, 248, 0.18), transparent 60%),
-    radial-gradient(circle at bottom right, rgba(244, 114, 182, 0.18), transparent 60%);
+  padding: 0.5rem 0.2rem 0.4rem;
 }
 
 .message-row {
   display: flex;
-  margin-bottom: 0.55rem;
+  margin-bottom: 0.45rem;
 }
 
 .message-row.user {
@@ -200,10 +203,10 @@ html[data-theme="dark"] .chat-card {
 
 .message-bubble {
   max-width: 80%;
-  border-radius: 1.25rem;
-  padding: 0.6rem 0.9rem;
-  font-size: 0.9rem;
-  line-height: 1.45;
+  border-radius: 1.2rem;
+  padding: 0.45rem 0.7rem;
+  font-size: 0.88rem;
+  line-height: 1.4;
   white-space: pre-wrap;
 }
 
@@ -212,7 +215,7 @@ html[data-theme="dark"] .chat-card {
 .message-bubble.user {
   background: linear-gradient(135deg, #6366f1, #4f46e5);
   color: var(--color-user-text);
-  border-bottom-right-radius: 0.3rem;
+  border-bottom-right-radius: 0.35rem;
   box-shadow: 0 8px 18px rgba(79, 70, 229, 0.4);
 }
 
@@ -221,37 +224,37 @@ html[data-theme="dark"] .chat-card {
 .message-bubble.assistant {
   background: linear-gradient(135deg, #e0f2fe, #ccfbf1);
   color: var(--color-text);
-  border-bottom-left-radius: 0.3rem;
+  border-bottom-left-radius: 0.35rem;
   box-shadow: 0 6px 14px rgba(59, 130, 246, 0.25);
 }
 
 /* Dark tweaks */
 
 html[data-theme="dark"] .message-bubble.assistant {
-  background: linear-gradient(135deg, #0f172a, #0b1120);
-  box-shadow: 0 6px 14px rgba(15, 23, 42, 0.8);
+  background: linear-gradient(135deg, #0f172a, #020617);
+  box-shadow: 0 6px 14px rgba(15, 23, 42, 0.9);
 }
 
 /* Images inside messages */
 
 .message-image {
-  max-width: 220px;
+  max-width: 210px;
   border-radius: 0.9rem;
   display: block;
   margin-bottom: 0.25rem;
 }
 
-/* Input area */
+/* Input area at bottom */
 
 .input-area {
   border-top: 1px solid var(--color-border);
-  padding: 0.6rem 0.9rem;
+  padding: 0.45rem 0.4rem;
   background-color: rgba(15, 23, 42, 0.02);
 }
 
 .input-row {
   display: flex;
-  gap: 0.5rem;
+  gap: 0.35rem;
   align-items: flex-end;
 }
 
@@ -261,33 +264,33 @@ html[data-theme="dark"] .message-bubble.assistant {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 0.4rem 0.7rem;
+  padding: 0.35rem 0.6rem;
   border-radius: 999px;
   background: linear-gradient(
     135deg,
     rgba(56, 189, 248, 0.25),
     rgba(96, 165, 250, 0.25)
   );
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   cursor: pointer;
   white-space: nowrap;
   color: #0f172a;
   border: 1px solid rgba(59, 130, 246, 0.5);
 }
 
-/* Input */
+/* Text input */
 
 .input-textarea {
   flex: 1;
-  min-height: 2.4rem;
-  max-height: 7rem;
-  padding: 0.45rem 0.7rem;
+  min-height: 2.2rem;
+  max-height: 5.8rem;
+  padding: 0.35rem 0.6rem;
   border-radius: 999px;
   border: 1px solid var(--color-border);
   background-color: var(--color-input-bg);
   resize: none;
   font-family: inherit;
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   color: var(--color-text);
 }
 
@@ -297,17 +300,17 @@ html[data-theme="dark"] .message-bubble.assistant {
   box-shadow: 0 0 0 1px rgba(236, 72, 153, 0.18);
 }
 
-/* Send */
+/* Send button */
 
 .send-button {
-  padding: 0.45rem 0.9rem;
+  padding: 0.4rem 0.7rem;
   border-radius: 999px;
   border: none;
   background: linear-gradient(135deg, #ec4899, #f97316);
   color: #fff;
   font-weight: 700;
   cursor: pointer;
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   white-space: nowrap;
   box-shadow: 0 8px 18px rgba(249, 115, 22, 0.4);
 }
@@ -321,27 +324,27 @@ html[data-theme="dark"] .message-bubble.assistant {
 /* Attached image preview & loading */
 
 .preview-bar {
-  padding: 0.45rem 0.9rem;
+  padding: 0.35rem 0.6rem;
   border-top: 1px dashed var(--color-border);
   background-color: rgba(15, 23, 42, 0.02);
   display: flex;
   align-items: center;
-  gap: 0.6rem;
+  gap: 0.5rem;
 }
 
 .preview-thumb {
-  max-width: 120px;
+  max-width: 90px;
   border-radius: 0.75rem;
 }
 
 .preview-label {
-  font-size: 0.8rem;
+  font-size: 0.78rem;
   color: var(--color-subtle);
 }
 
 .loading-bar {
-  padding: 0.35rem 0.9rem;
-  font-size: 0.8rem;
+  padding: 0.3rem 0.6rem;
+  font-size: 0.78rem;
   color: var(--color-subtle);
 }
 
@@ -349,29 +352,30 @@ html[data-theme="dark"] .message-bubble.assistant {
 
 .page-narrow {
   width: 100%;
-  max-width: 800px;
 }
 
 .card {
   background-color: var(--color-bg-surface);
-  border-radius: 1.5rem;
+  border-radius: 1.25rem;
   border: 1px solid rgba(148, 163, 184, 0.5);
-  padding: 1.35rem 1.6rem;
-  box-shadow: 0 16px 36px rgba(15, 23, 42, 0.24);
+  padding: 1rem 1.15rem;
+  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.24);
+  font-size: 0.9rem;
 }
 
 .card h1 {
   margin-top: 0;
+  font-size: 1.1rem;
 }
 
 .settings-grid {
   display: grid;
-  gap: 1rem;
+  gap: 0.75rem;
   margin-top: 0.5rem;
 }
 
 .settings-section-title {
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   font-weight: 600;
   margin-bottom: 0.25rem;
 }
@@ -379,16 +383,16 @@ html[data-theme="dark"] .message-bubble.assistant {
 .pill-row {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.5rem;
+  gap: 0.4rem;
   margin-top: 0.25rem;
 }
 
 .pill-button {
   border-radius: 999px;
-  padding: 0.35rem 0.9rem;
+  padding: 0.3rem 0.8rem;
   border: 1px solid var(--color-border);
   background-color: rgba(255, 255, 255, 0.7);
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   cursor: pointer;
 }
 
