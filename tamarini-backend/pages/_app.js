@@ -28,7 +28,7 @@ function AppShell({ children }) {
 
   return (
     <div className={`app-root theme-${theme}`}>
-      {/* This inner shell is sized like a phone (max-width ~ 430px) */}
+      {/* This shell is responsive: full width on mobile, card on desktop */}
       <div className="app-shell">
         <header className="app-header">
           <Link href="/" className="app-logo">
@@ -50,12 +50,12 @@ function MyApp({ Component, pageProps }) {
   return (
     <SettingsProvider>
       <Head>
-        {/* Mobile viewport so it behaves like a real mobile app */}
+        {/* Mobile viewport so it behaves like a mobile app, but also fine on desktop */}
         <meta
           name="viewport"
-          content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"
+          content="width=device-width, initial-scale=1, maximum-scale=1"
         />
-        <meta name="theme-color" content="#2563eb" />
+        <meta name="theme-color" content="#0f172a" />
         <title>TAMARINI</title>
       </Head>
       <AppShell>
